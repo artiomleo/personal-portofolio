@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 210 40% 96%;
+    --card-foreground: 222 47% 11%;
+    --popover: 210 40% 98%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 224 64% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 172 59% 48%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 90%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 37 100% 55%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 224 64% 60%;
+    --radius: 0.5rem;
+  }
+
+  html.dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 224 64% 60%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 172 59% 48%;
+    --secondary-foreground: 222 47% 7%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 37 100% 55%;
+    --accent-foreground: 222 47% 7%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 15%;
+    --input: 217 33% 15%;
+    --ring: 224 64% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-outfit transition-colors duration-300;
+    overflow-x: hidden;
+  }
+  
+  /* Add smooth scrolling to the html element */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Style the scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/50;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
+  }
+  
+  /* Hide custom cursor on small screens */
+  @media (max-width: 768px) {
+    .custom-cursor {
+      display: none;
+    }
+  }
+  
+  /* Hide the cursor when custom cursor is active */
+  .cursor-none {
+    cursor: none;
+  }
+}
+
+@layer components {
+  .animated-gradient {
+    background: linear-gradient(
+      -45deg, 
+      hsl(var(--primary) / 0.2),
+      hsl(var(--secondary) / 0.2),
+      hsl(var(--accent) / 0.2),
+      hsl(var(--background))
+    );
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+  
+  .blur-backdrop {
+    @apply backdrop-blur-md bg-background/50 border border-border/50;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+
+  .glow-effect {
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.3), 
+                0 0 30px hsl(var(--primary) / 0.2);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* For visually-hidden elements (accessibility) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to content link for keyboard users */
+.skip-to-content {
+  @apply bg-primary text-white px-4 py-2 absolute top-0 left-0 -translate-y-full focus:translate-y-0 z-50 transition-transform;
+}
+
+/* For animating elements in on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
