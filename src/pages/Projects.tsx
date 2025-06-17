@@ -11,7 +11,7 @@ const projects = [
     id: 1,
     title: "AskManu",
     description: "An AI-powered chat application designed to assist developers by providing code suggestions, repository integrations, and real-time collaboration tools.",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80",
     technologies: ["Vue.js", "Vite", "Tailwind", "Pinia"],
     category: "Web App",
     links: {
@@ -23,7 +23,7 @@ const projects = [
     id: 2,
     title: "One More Plate",
     description: "Web application designed to enhance the travel dining experience by offering hand-picked restaurant recommendations from trusted locals in various European cities. The app ensures users avoid tourist traps and enjoy authentic local cuisine.",
-    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2069&q=80",
+    image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80",
     technologies: ["Vue.js", "Vite", "Tailwind", "Pinia"],
     category: "Web App",
     links: {
@@ -35,7 +35,7 @@ const projects = [
     id: 3,
     title: "Occupational Health and Wellbeing Solution",
     description: "The solution is a comprehensive application tailored to support occupational health. Built with Vue.js 3 and Vite, the solution leverages microfrontend architecture, Vuetify, and Material UI for a seamless user experience, and integrates Azure ADB2C for secure authentication.",
-    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2020&q=80",
+    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80",
     technologies: ["Vue.js", "Vite", "Vitest", "Tailwind", "Pinia", "Vuetify", "Material UI", "Azure ADB2C"],
     category: "Web App",
     links: {
@@ -47,7 +47,7 @@ const projects = [
     id: 4,
     title: "e-Hospital application",
     description: "Software architecture for managing a fertility clinic, integrated with different third-party services like shipping, laboratories, and warehouses. High-security authentication solutions: two-factor authentication, Bearer tokens, request throttling. Automated processes such as quality control, sending emails, processing physical kits, and tracking parcels.",
-    image: "https://images.unsplash.com/photo-1599045118108-bf9954418b76?q=80&w=2148&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "https://images.unsplash.com/photo-1599045118108-bf9954418b76?q=80&w=2148&auto=format&fit=crop&w=350&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     technologies: ["Vue.js", "Tailwind", "Laravel", "Inertia.Js", "MySQL", "AWS"],
     category: "Web App",
     links: {
@@ -59,7 +59,7 @@ const projects = [
     id: 5,
     title: "Customizable job board website builder",
     description: "Website builder built with Nuxt that allows the creation and DNS mapping of multiple websites on the same server.",
-    image: "https://images.unsplash.com/photo-1669023414171-56f0740e34cd?q=80&w=2832&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "https://images.unsplash.com/photo-1669023414171-56f0740e34cd?q=80&w=2832&auto=format&fit=crop&w=350&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     technologies: ["Vue.js", "Nuxt.js", "Tailwind", "Vuex", "Multi-tenancy", "SEO"],
     category: "Web App",
     links: {
@@ -71,7 +71,7 @@ const projects = [
     id: 6,
     title: "License Management App Ecosystem",
     description: "Aims to help enterprises reduce licensing costs by providing an ecosystem of license management applications.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2230&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2230&auto=format&fit=crop&w=350&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     technologies: ["Vue.js", "Tailwind", "Websockets"],
     category: "Web App",
     links: {
