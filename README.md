@@ -14,7 +14,7 @@ A sleek and modern personal portfolio website built with React, TypeScript, and 
 
 ## 🛠️ Tech Stack
 
-- [React](https://reactjs.org/) - UI Library
+- [React](https://reactjs.org/) - Framework
 - [TypeScript](https://www.typescriptlang.org/) - Type Safety
 - [Vite](https://vitejs.dev/) - Build Tool
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
@@ -22,7 +22,6 @@ A sleek and modern personal portfolio website built with React, TypeScript, and 
 - [React Router](https://reactrouter.com/) - Routing
 - [React Query](https://tanstack.com/query/latest) - Data Fetching
 - [Lucide Icons](https://lucide.dev/) - Icons
-- [Recharts](https://recharts.org/) - Charts
 
 ## 🚦 Getting Started
 
