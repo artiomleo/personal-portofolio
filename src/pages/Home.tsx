@@ -92,10 +92,10 @@ export default function Home() {
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
                     <div className="flex gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary" aria-label="Technology: Vue.js">
                         Vue.js
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary" aria-label="Technology: Vite">
                         Vite
                       </span>
                     </div>
@@ -123,10 +123,10 @@ export default function Home() {
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
                     <div className="flex gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary" aria-label="Technology: Vue.js">
                         Vue.js
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary" aria-label="Technology: Tailwind">
                         Tailwind
                       </span>
                     </div>
@@ -154,10 +154,10 @@ export default function Home() {
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
                     <div className="flex gap-2 mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary" aria-label="Technology: Vue.js">
                         Vue.js
                       </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary">
+                      <span className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary" aria-label="Technology: Typescript">
                         Typescript
                       </span>
                     </div>

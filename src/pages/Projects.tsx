@@ -105,10 +105,10 @@ export default function Projects() {
         <div className="container">
           <RevealOnScroll>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">My Projects</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mb-10">
+            <h2 className="text-lg text-muted-foreground max-w-2xl mb-10">
               Explore a selection of my recent work. Each project showcases different skills
               and technologies I've worked with.
-            </p>
+            </h2>
           </RevealOnScroll>
 
           {/* Filters */}

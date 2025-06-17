@@ -38,11 +38,6 @@ export function Navbar() {
   
   return (
     <>
-      {/* Skip to content link for accessibility */}
-      <a href="#main-content" className="skip-to-content">
-        Skip to content
-      </a>
-      
       {/* Main navigation */}
       <header 
         className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${

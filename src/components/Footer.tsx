@@ -1,23 +1,24 @@
 
-import { Github, Linkedin,  Mail } from "lucide-react";
+import { Github, Linkedin, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  
+
   const socialLinks = [
     { icon: Github, href: "https://github.com/artiomleo", label: "GitHub" },
     { icon: Linkedin, href: "https://www.linkedin.com/in/artiomleo/", label: "LinkedIn" },
     { icon: Mail, href: "mailto:artiomleo@gmail.com", label: "Email" },
   ];
-  
+
   return (
     <footer className="border-t border-border py-8 mt-20">
       <div className="container grid gap-8 md:grid-cols-2">
         <div>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="text-xl font-bold flex items-center gap-2 mb-4"
+            aria-label="Go to homepage"
           >
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold">
               AL
@@ -28,11 +29,11 @@ export function Footer() {
             Frontend developer passionate about creating beautiful, accessible, and user-friendly web experiences.
           </p>
         </div>
-        
+
         <div className="flex flex-col items-start md:items-end gap-4">
           <div className="flex gap-4">
             {socialLinks.map((link) => (
-              <a 
+              <a
                 key={link.label}
                 href={link.href}
                 target="_blank"
@@ -44,7 +45,7 @@ export function Footer() {
               </a>
             ))}
           </div>
-          
+
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
@@ -52,7 +53,7 @@ export function Footer() {
             <Link to="/projects" className="hover:text-foreground transition-colors">Projects</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </div>
-          
+
           <p className="text-sm text-muted-foreground">
             © {currentYear} Artiom Leontiev. All rights reserved.
           </p>
