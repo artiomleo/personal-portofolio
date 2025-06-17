@@ -38,11 +38,6 @@ export function Navbar() {
   
   return (
     <>
-      {/* Skip to content link for accessibility */}
-      <a href="#main-content" className="skip-to-content">
-        Skip to content
-      </a>
-      
       {/* Main navigation */}
       <header 
         className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${
@@ -57,9 +52,9 @@ export function Navbar() {
             aria-label="Go to homepage"
           >
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold">
-              JD
+              AL
             </div>
-            <span>John Doe</span>
+            <span>Artiom Leontiev</span>
           </Link>
           
           {/* Desktop navigation */}

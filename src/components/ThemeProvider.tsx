@@ -26,7 +26,7 @@ export function ThemeProvider({
 
   useEffect(() => {
     applyTheme(theme);
-    
+
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       if (theme === "system") {
@@ -40,19 +40,19 @@ export function ThemeProvider({
 
   const applyTheme = (theme: Theme) => {
     const root = window.document.documentElement;
-    
+
     root.classList.remove("light", "dark");
-    
+
     let effectiveTheme = theme;
-    
+
     if (theme === "system") {
       effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
     }
-    
+
     root.classList.add(effectiveTheme);
-    
+
     localStorage.setItem("theme", theme);
   };
 
