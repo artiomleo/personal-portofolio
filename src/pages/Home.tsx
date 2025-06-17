@@ -20,7 +20,7 @@ export default function Home() {
 
           <RevealOnScroll>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mt-4 mb-6 leading-tight">
-              Frontend <span className="text-primary">Developer</span>
+              Frontend <span className="text-primary">Engineer</span>
               <br />
               Building the Web
             </h1>
