@@ -29,8 +29,8 @@ export default function About() {
               <div className="relative">
                 <div className="relative z-10 rounded-2xl overflow-hidden aspect-square">
                   <img 
-                    src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&q=80&w=1887&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
-                    alt="John Doe, Frontend Developer" 
+                    src="/portrait.jpg" 
+                    alt="Artiom Leontiev, Frontend Developer"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -69,9 +69,11 @@ export default function About() {
                     Get in touch <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="rounded-full gap-2">
+                <a href="https://drive.google.com/file/d/1mfCKTsZ6tDHk7Td8VvAKuy1Ct9NsHG6t/view?usp=sharing" target="_blank" rel="noopener noreferrer">
+                <Button variant="link" size="lg" className="rounded-full gap-2">
                   <Download className="w-4 h-4" /> Download Resume
                 </Button>
+                </a>
               </div>
             </RevealOnScroll>
           </div>

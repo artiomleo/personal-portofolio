@@ -1,15 +1,14 @@
 
-import { Github, Linkedin, Twitter, Mail, ExternalLink } from "lucide-react";
+import { Github, Linkedin,  Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
   
   const socialLinks = [
-    { icon: Github, href: "#", label: "GitHub" },
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Mail, href: "mailto:hello@example.com", label: "Email" },
+    { icon: Github, href: "https://github.com/artiomleo", label: "GitHub" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/artiomleo/", label: "LinkedIn" },
+    { icon: Mail, href: "mailto:artiomleo@gmail.com", label: "Email" },
   ];
   
   return (
@@ -21,13 +20,12 @@ export function Footer() {
             className="text-xl font-bold flex items-center gap-2 mb-4"
           >
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold">
-              JD
+              AL
             </div>
-            <span>John Doe</span>
+            <span>Artiom Leontiev</span>
           </Link>
           <p className="text-muted-foreground max-w-md">
-            Frontend developer passionate about creating beautiful, accessible, and 
-            user-friendly web experiences.
+            Frontend developer passionate about creating beautiful, accessible, and user-friendly web experiences.
           </p>
         </div>
         
@@ -56,7 +54,7 @@ export function Footer() {
           </div>
           
           <p className="text-sm text-muted-foreground">
-            © {currentYear} John Doe. All rights reserved.
+            © {currentYear} Artiom Leontiev. All rights reserved.
           </p>
         </div>
       </div>

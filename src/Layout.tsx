@@ -4,9 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { ParticleBackground } from "./components/ParticleBackground";
-import { CustomCursor } from "./components/CustomCursor";
 import { ScrollProgress } from "./components/ScrollProgress";
-import { useTheme } from "./components/ThemeProvider";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,7 +27,7 @@ export function Layout({ children }: LayoutProps) {
       
       {/* Background elements */}
       <ParticleBackground />
-      <CustomCursor />
+      {/* <CustomCursor /> */}
       <ScrollProgress />
       
       {/* Navigation */}
