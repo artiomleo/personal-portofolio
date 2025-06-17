@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 export default function Contact() {
   const formId = import.meta.env.VITE_FORM_ID;
   const { toast } = useToast();
-  const [state, submitForm] = useForm('formId');
+  const [state, submitForm] = useForm(formId);
   const [name, setName] = useState("");
   const [submittedData, setSubmittedData] = useState<Record<string, unknown> | null>(null);
 
