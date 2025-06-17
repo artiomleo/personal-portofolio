@@ -40,7 +40,7 @@ const projects = [
     category: "Web App",
     links: {
       github: "",
-      live: "",
+      live: "https://www.medigold-health.com/",
     },
   },
   {
