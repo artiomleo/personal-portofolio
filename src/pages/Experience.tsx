@@ -4,42 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Experience data
-const experiences = [
-  {
-    id: 1,
-    role: "Senior Frontend Developer",
-    company: "TechCorp Inc.",
-    period: "2022 - Present",
-    description: "Lead developer for the company's flagship product, managing a team of 4 developers. Implemented new features, improved performance, and mentored junior developers.",
-    technologies: ["React", "TypeScript", "GraphQL", "Tailwind CSS"],
-  },
-  {
-    id: 2,
-    role: "Frontend Developer",
-    company: "WebSolutions Ltd",
-    period: "2020 - 2022",
-    description: "Developed and maintained multiple client websites and web applications. Collaborated with designers to implement pixel-perfect UIs and improved site performance.",
-    technologies: ["Vue.js", "JavaScript", "SCSS", "RESTful APIs"],
-  },
-  {
-    id: 3,
-    role: "UI Developer",
-    company: "CreativeAgency",
-    period: "2018 - 2020",
-    description: "Transformed design mockups into responsive, interactive web interfaces. Worked directly with clients to implement feedback and ensure satisfaction.",
-    technologies: ["HTML5", "CSS3", "JavaScript", "jQuery", "Bootstrap"],
-  },
-  {
-    id: 4,
-    role: "Junior Web Developer",
-    company: "StartupHub",
-    period: "2017 - 2018",
-    description: "Assisted in developing web applications for early-stage startups. Gained experience in fast-paced environments and agile methodologies.",
-    technologies: ["React", "JavaScript", "CSS", "Firebase"],
-  },
-];
-
 export default function Experience() {
   return (
     <div className="pt-24">
@@ -63,7 +27,7 @@ export default function Experience() {
                 period: '2022 - present',
                 role: 'Senior Frontend Engineer',
                 company: 'Amdaris',
-                description: 'Led the development of a scalable Microfrontend architecture with Vue.js 3 and Vite for an occupational health application. Managed and mentored 4 developers, conducted code reviews, facilitated technical meetings, and drove technology decisions.',
+                description: 'Led the development of a scalable Microfrontend architecture with Vue.js 3 and Vite for an occupational health application. Managed and mentored 4 developers, built internal trainings, conducted code reviews, facilitated technical meetings, and drove technology decisions. Played a key role in hiring by conducting technical interviews.',
                 technologies: ['Vue.js 3', 'Vite', 'Vuetify', 'Material UI', 'Pinia', 'Vee Validate', 'Microfrontends']
               },
               {
@@ -71,7 +35,7 @@ export default function Experience() {
                 period: '2019 - 2022',
                 role: 'Full-Stack Engineer',
                 company: 'BinarCode',
-                description: 'Delivered large design projects for international clients. Handled frontend and backend development, QA, and collaborated with designers and stakeholders. Specialized in responsive design and rapid incident resolution.',
+                description: 'Led full-cycle development of large-scale projects for global clients, delivering solutions from frontend development through backend integration and deployment. Architected responsive frontends while ensuring robust API integrations. Collaborated cross-functionally with designers and stakeholders to align technical execution with business goals. Specialised in rapid troubleshooting, resolving critical issues within timelines. Mentored junior developers in modern web practices.',
                 technologies: ['Vue.js', 'Laravel', 'MySQL', 'Tailwind', 'Bootstrap', 'SEO']
               },
               {
@@ -79,7 +43,7 @@ export default function Experience() {
                 period: '2018 - 2019',
                 role: 'Freelance Web Developer',
                 company: 'Self-employed',
-                description: 'Built website layouts and user interfaces, integrated backend services, and maintained code quality through adherence to standards and documentation.',
+                description: 'Built websites with HTML/CSS, React, and Node.js, transforming designs into pixel-perfect, responsive UIs. Integrated APIs and backend services for dynamic functionality while maintaining code quality through standards and documentation.',
                 technologies: ['HTML', 'CSS', 'JavaScript', 'Responsive Design']
               }
             ].map((exp, index) => (

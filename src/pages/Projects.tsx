@@ -87,12 +87,9 @@ const projects = [
   },
 ];
 
-// Category filters
-const categories = ["All", "Web App", "Mobile App", "UI/UX", "Other"];
-
 export default function Projects() {
-  const [filter, setFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filter] = useState("All");
+  const [searchQuery] = useState("");
 
   // Filter projects based on category and search query
   const filteredProjects = projects.filter((project) => {
