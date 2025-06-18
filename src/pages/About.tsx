@@ -29,7 +29,7 @@ export default function About() {
               <div className="relative">
                 <div className="relative z-10 rounded-2xl overflow-hidden aspect-square">
                   <img
-                    src="/portrait.jpg"
+                    src="/images/portrait.jpg"
                     alt="Artiom Leontiev, Frontend Developer"
                     className="w-full h-full object-cover"
                   />

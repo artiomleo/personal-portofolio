@@ -85,9 +85,10 @@ export default function Home() {
                 <div className="rounded-lg overflow-hidden border border-border bg-card/50 hover:bg-card transition-colors duration-300 h-full flex flex-col">
                   <div className="aspect-video bg-muted overflow-hidden">
                     <img
-                      src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80"
-                      alt="E-commerce project screenshot"
+                      src="/images/open-macbook-code.webp"
+                      alt="Open MacBook displaying code on screen"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
@@ -116,9 +117,10 @@ export default function Home() {
                 <div className="rounded-lg overflow-hidden border border-border bg-card/50 hover:bg-card transition-colors duration-300 h-full flex flex-col">
                   <div className="aspect-video bg-muted overflow-hidden">
                     <img
-                      src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80"
-                      alt="Mobile app project screenshot"
+                      src="/images/code-display.webp"
+                      alt="Screen displaying php code"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
@@ -147,9 +149,10 @@ export default function Home() {
                 <div className="rounded-lg overflow-hidden border border-border bg-card/50 hover:bg-card transition-colors duration-300 h-full flex flex-col">
                   <div className="aspect-video bg-muted overflow-hidden">
                     <img
-                      src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=350&q=80"
-                      alt="Analytics project screenshot"
+                      src="/images/silver-laptop-dark-background.webp"
+                      alt="Silver MacBook almost closed on a dark black background"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
