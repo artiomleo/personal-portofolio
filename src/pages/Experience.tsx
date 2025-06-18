@@ -134,12 +134,12 @@ export default function Experience() {
             {[
               "JavaScript", "TypeScript", "Vue.js", "Nuxt.js",
               "React", "Vite", "Pinia", "Tailwind CSS", "SCSS",
-              "Microfrontend Architecture", "Responsive Design",
-              "Accessibility (WCAG 2.1 AA)", "Performance Optimization",
+              "Microfrontends", "Performance Optimization",
+              "Accessibility (WCAG 2.1 AA)", "Responsive Design",
               "RESTful APIs", "Git", "CI/CD", "SEO Best Practices",
               "Storybook", "Unit Testing", "End-to-End Testing"
             ].map((skill, index) => (
-              <RevealOnScroll key={skill} delay={index * 0.05}>
+              <RevealOnScroll key={skill} delay={index * 0.05} className="place-self-center w-full">
                 <div className="bg-card/50 border border-border rounded-lg p-4 text-center hover:bg-card hover:border-primary/50 transition-all duration-300">
                   <span className="font-medium">{skill}</span>
                 </div>
