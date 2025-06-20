@@ -35,7 +35,7 @@ export default function Experience() {
                 period: '2019 - 2022',
                 role: 'Full-Stack Engineer',
                 company: 'BinarCode',
-                description: 'Led full-cycle development of large-scale projects for global clients, delivering solutions from frontend development through backend integration and deployment. Architected responsive frontends while ensuring robust API integrations. Collaborated cross-functionally with designers and stakeholders to align technical execution with business goals. Specialised in rapid troubleshooting, resolving critical issues within timelines. Mentored junior developers in modern web practices.',
+                description: 'Contributed significantly to full-cycle development of large-scale global projects, covering frontend, backend integration, and deployment. Architected responsive frontends while ensuring robust API integrations. Collaborated cross-functionally with designers and stakeholders to align technical execution with business goals. Specialised in rapid troubleshooting, resolving critical issues within timelines. Mentored junior developers in modern web practices.',
                 technologies: ['Vue.js', 'Laravel', 'MySQL', 'Tailwind', 'Bootstrap', 'SEO']
               },
               {
