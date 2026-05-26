@@ -8,7 +8,7 @@ export function Footer() {
   const socialLinks = [
     { icon: Github, href: "https://github.com/artiomleo", label: "GitHub" },
     { icon: Linkedin, href: "https://www.linkedin.com/in/artiomleo/", label: "LinkedIn" },
-    { icon: Mail, href: "mailto:artiomleo@gmail.com", label: "Email" },
+    { icon: Mail, href: "mailto:contact@artiomleo.com", label: "Email" },
   ];
 
   return (

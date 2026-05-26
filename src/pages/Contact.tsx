@@ -48,7 +48,7 @@ export default function Contact() {
   const socialLinks = [
     { icon: Github, href: "https://github.com/artiomleo", label: "GitHub" },
     { icon: Linkedin, href: "https://www.linkedin.com/in/artiomleo/", label: "LinkedIn" },
-    { icon: Mail, href: "mailto:artiomleo@gmail.com", label: "Email" },
+    { icon: Mail, href: "mailto:contact@artiomleo.com", label: "Email" },
   ];
 
   return (
@@ -89,7 +89,7 @@ export default function Contact() {
                   <div>
                     <h3 className="font-medium">Email</h3>
                     <a href="mailto:hello@example.com" className="text-muted-foreground hover:text-primary transition-colors">
-                      artiomleo@gmail.com
+                      contact@artiomleo.com
                     </a>
                   </div>
                 </div>
