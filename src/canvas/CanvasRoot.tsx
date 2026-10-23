@@ -5,6 +5,9 @@ import { FRAMES, frameById, normalizePath, type FrameId } from "@/frames/registr
 import { useLayout } from "@/layout/LayoutProvider";
 import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useRegisterCanvasApi, type CanvasApi } from "./CanvasApi";
+import { useDevMode } from "@/devmode/DevModeProvider";
+import { CursorChat } from "./CursorChat";
+import { DemoCursors } from "./DemoCursors";
 import { centerOn, fitRect, focusFrame, toScreen } from "./camera";
 import { PAD_TOP } from "./constants";
 import { CameraController } from "./controller";
@@ -47,6 +50,7 @@ export function CanvasRoot({ current, onHelp }: Props) {
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
   const registerApi = useRegisterCanvasApi();
+  const devMode = useDevMode();
 
   const frameEl = useCallback(
     (id: FrameId) => worldRef.current?.querySelector<HTMLElement>(`[data-frame="${id}"]`) ?? null,
@@ -249,6 +253,8 @@ export function CanvasRoot({ current, onHelp }: Props) {
           return <FrameComponent key={f.id} primary={f.id === "home"} />;
         })}
       </div>
+      {rects && <DemoCursors current={current} rects={rects} live={!devMode.on} />}
+      <CursorChat viewportRef={viewportRef} />
       {rects && <Minimap rects={rects} />}
       <ZoomControls />
     </main>

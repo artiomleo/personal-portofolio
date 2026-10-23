@@ -153,3 +153,156 @@
 .shortcuts .btn--ghost {
   color: var(--tool-text);
 }
+
+/* Demo cursors */
+.demo {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+.demo [hidden] {
+  display: none !important;
+}
+.demo-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+.demo-cursor svg {
+  display: block;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.3));
+}
+.demo-cursor path {
+  fill: var(--c);
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+.demo-cursor span {
+  position: absolute;
+  left: 15px;
+  top: 18px;
+  padding: 3px 8px;
+  border-radius: 3px 10px 10px 10px;
+  background: var(--c);
+  color: var(--ct);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.demo-select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  outline: 1.5px solid var(--select);
+  background: color-mix(in srgb, var(--select) 7%, transparent);
+}
+.demo-select-size {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 7px);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--select);
+  color: var(--on-select);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* #region layer:comment-pin */
+.demo-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.demo-pin-dot {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--cursor-pm);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px #fff;
+}
+.demo-pin-bubble {
+  max-width: 260px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  background: var(--tool-ui);
+  color: var(--tool-text);
+  box-shadow: 0 10px 26px -10px rgb(0 0 0 / 0.35), 0 0 0 1px var(--tool-line);
+  font-size: 14px;
+  line-height: 1.4;
+  transform-origin: 0 100%;
+  animation: pin-pop 0.35s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+/* #endregion */
+@keyframes pin-pop {
+  from { transform: scale(0.7); }
+  to { transform: scale(1); }
+}
+[data-devmode] .demo-pin {
+  pointer-events: auto;
+}
+
+/* Cursor chat */
+.chat-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.chat-tag,
+.chat-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 3px 12px 12px 12px;
+  background: var(--tool-text);
+  color: var(--tool-ui);
+}
+.chat-tag {
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chat-tag[hidden],
+.chat-layer.is-open .chat-tag {
+  display: none;
+}
+.chat-tag kbd {
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tool-ui) 22%, transparent);
+  font-size: 10.5px;
+}
+.chat-bubble {
+  pointer-events: auto;
+}
+.chat-bubble:focus-within {
+  box-shadow: 0 0 0 2px var(--select);
+}
+.chat-bubble input {
+  width: 240px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 500 14px var(--font-ui);
+  outline: none;
+}
+.chat-bubble input::placeholder {
+  color: color-mix(in srgb, var(--tool-ui) 70%, transparent);
+}
