@@ -33,6 +33,16 @@ export class CameraController {
     return this.flight !== null;
   }
 
+  /** When the current flight started (performance.now() time), or null when the camera isn't flying. */
+  flightStartedAt(): number | null {
+    return this.flight?.start ?? null;
+  }
+
+  /** Where the camera is heading: the flight's destination, or the current view. */
+  target(): View {
+    return this.flight?.to ?? this.view;
+  }
+
   set(view: View) {
     this.stop();
     this.view = view;
@@ -78,15 +88,16 @@ export class CameraController {
     this.moving();
   }
 
+  /** Stops any flight and the pending rest, so the rest timer can't fire mid-flight. */
   stop() {
     this.flight = null;
     cancelAnimationFrame(this.raf);
     this.raf = 0;
+    window.clearTimeout(this.restTimer);
   }
 
   cancel() {
     this.stop();
-    window.clearTimeout(this.restTimer);
   }
 
   // While moving, use fractional px and will-change; at rest, round to whole px so text stays crisp.

@@ -2,15 +2,24 @@ import type { CameraController } from "./controller";
 
 // Pointer-downs on these never start a pan.
 const NO_PAN = "a, button, input, textarea, select, label, summary, [contenteditable], [data-nopan]";
+// Wheel events closer together than this belong to one gesture, trackpad momentum included.
+const WHEEL_STREAM_MS = 150;
 
 /** Drag to pan, wheel to pan, Ctrl/⌘ + wheel or pinch to zoom. Returns a function that detaches everything. */
 export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, onUser: () => void): () => void {
   let pan: { x: number; y: number; id: number; moved: boolean } | null = null;
   let gestureZoom = 1;
+  let lastWheel = 0;
+  let wheelStreamStart = 0;
 
   const swallowClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  };
+
+  const endPan = () => {
+    pan = null;
+    viewport.classList.remove("is-panning");
   };
 
   const onDown = (e: PointerEvent) => {
@@ -21,6 +30,11 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
 
   const onMove = (e: PointerEvent) => {
     if (!pan || e.pointerId !== pan.id) return;
+    // The button was released outside the canvas before capture started.
+    if (!(e.buttons & 1)) {
+      endPan();
+      return;
+    }
     const dx = e.clientX - pan.x;
     const dy = e.clientY - pan.y;
     if (!pan.moved) {
@@ -41,21 +55,33 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
       window.addEventListener("click", swallowClick, { capture: true, once: true });
       window.setTimeout(() => window.removeEventListener("click", swallowClick, { capture: true }), 0);
     }
-    pan = null;
-    viewport.classList.remove("is-panning");
+    endPan();
   };
 
   const onWheel = (e: WheelEvent) => {
+    const now = performance.now();
+    if (now - lastWheel >= WHEEL_STREAM_MS) wheelStreamStart = now;
+    lastWheel = now;
+    // A textarea that can scroll keeps the wheel.
+    const scroller = (e.target as Element).closest?.("textarea");
+    if (scroller && scroller.scrollHeight > scroller.clientHeight) return;
     e.preventDefault();
+    const zooming = e.ctrlKey || e.metaKey;
+    // Momentum from a scroll that began before a flight would cancel it; ignore that stream until it ends.
+    const flightStart = cam.flightStartedAt();
+    if (!zooming && flightStart !== null && wheelStreamStart < flightStart) return;
     onUser();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? cam.vp.h : 1;
-    if (e.ctrlKey || e.metaKey) {
+    if (zooming) {
       const r = viewport.getBoundingClientRect();
       cam.zoomAt(cam.view.z * Math.exp(-e.deltaY * unit * 0.0025), e.clientX - r.left, e.clientY - r.top);
     } else {
       cam.panBy(-e.deltaX * unit, -e.deltaY * unit);
     }
   };
+
+  // Images would otherwise start a native drag instead of a pan.
+  const onDragStart = (e: DragEvent) => e.preventDefault();
 
   // Safari reports trackpad pinches as gesture events.
   type Gesture = Event & { scale: number; clientX: number; clientY: number };
@@ -76,6 +102,7 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
   viewport.addEventListener("pointerup", onUp);
   viewport.addEventListener("pointercancel", onUp);
   viewport.addEventListener("wheel", onWheel, { passive: false });
+  viewport.addEventListener("dragstart", onDragStart);
   viewport.addEventListener("gesturestart", onGestureStart);
   viewport.addEventListener("gesturechange", onGestureChange);
 
@@ -85,6 +112,7 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
     viewport.removeEventListener("pointerup", onUp);
     viewport.removeEventListener("pointercancel", onUp);
     viewport.removeEventListener("wheel", onWheel);
+    viewport.removeEventListener("dragstart", onDragStart);
     viewport.removeEventListener("gesturestart", onGestureStart);
     viewport.removeEventListener("gesturechange", onGestureChange);
   };

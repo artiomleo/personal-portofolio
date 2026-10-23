@@ -10,6 +10,10 @@ export type CanvasApi = {
   fitAll: () => void;
   zoomBy: (factor: number) => void;
   centerOn: (x: number, y: number) => void;
+  /** Move the camera by screen px (keyboard panning). */
+  panBy: (dx: number, dy: number) => void;
+  /** Move to the top or bottom of the current route's frame. */
+  frameEdge: (edge: "top" | "bottom") => void;
   /** Called on every camera change, and once immediately. Returns an unsubscribe function. */
   subscribe: (fn: (view: View) => void) => () => void;
   getView: () => View;

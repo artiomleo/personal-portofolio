@@ -6,6 +6,7 @@
   right: 0;
   bottom: 0;
   overflow: hidden;
+  overflow: clip; /* not a scroll container, so focusing an element can't scroll it before the camera moves */
   outline: none;
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);

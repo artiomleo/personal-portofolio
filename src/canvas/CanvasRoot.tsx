@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FRAME_COMPONENTS } from "@/frames";
-import { FRAMES, frameById, type FrameId } from "@/frames/registry";
+import { FRAMES, frameById, normalizePath, type FrameId } from "@/frames/registry";
 import { useLayout } from "@/layout/LayoutProvider";
 import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useRegisterCanvasApi, type CanvasApi } from "./CanvasApi";
-import { centerOn, fitRect, focusFrame } from "./camera";
+import { centerOn, fitRect, focusFrame, toScreen } from "./camera";
+import { PAD_TOP } from "./constants";
 import { CameraController } from "./controller";
 import { attachCanvasInput } from "./input";
 import { bounds, layoutFrames, type FrameRects, type FrameSizes } from "./layout";
@@ -16,20 +17,31 @@ import { ZoomControls } from "./ZoomControls";
 
 type Props = { current: FrameId; onHelp: () => void };
 
+const sameRects = (a: FrameRects | null, b: FrameRects) =>
+  a !== null &&
+  FRAMES.every(({ id }) => a[id].x === b[id].x && a[id].y === b[id].y && a[id].w === b[id].w && a[id].h === b[id].h);
+
 export function CanvasRoot({ current, onHelp }: Props) {
   const viewportRef = useRef<HTMLElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const camRef = useRef<CameraController | null>(null);
   const rectsRef = useRef<FrameRects | null>(null);
-  /** The frame the camera is on. The route effect only flies when the route differs from it. */
+  /** The frame the camera was last sent to. */
   const focusedRef = useRef<FrameId>(current);
-  /** True after the visitor pans or zooms; resizes then keep their view instead of refitting the frame. */
+  /** True after the visitor pans or zooms, or the camera moved to a focused element; resizes then keep the view. */
   const userMovedRef = useRef(false);
+  /** Set by focusElement, which flies on its own, so the route effect skips that one navigation. */
+  const routeHandledRef = useRef(false);
+  const currentRef = useRef(current);
+  currentRef.current = current;
   const [rects, setRects] = useState<FrameRects | null>(null);
   const [api, setApi] = useState<CanvasApi | null>(null);
   const { reducedMotion } = useLayout();
   const reducedRef = useRef(reducedMotion);
   reducedRef.current = reducedMotion;
+  const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
   const navigate = useNavigate();
   // react-router hands out a new navigate function on every route change; a ref keeps the API object stable.
   const navigateRef = useRef(navigate);
@@ -88,9 +100,12 @@ export function CanvasRoot({ current, onHelp }: Props) {
         el.style.left = `${next[f.id].x}px`;
         el.style.top = `${next[f.id].y}px`;
       }
-      rectsRef.current = next;
-      setRects(next);
-      return next;
+      // Keep the same object when nothing moved, so consumers of `rects` don't re-plan.
+      if (!sameRects(rectsRef.current, next)) {
+        rectsRef.current = next;
+        setRects(next);
+      }
+      return rectsRef.current!;
     };
 
     cam.set(focusFrame(measure()[focusedRef.current], cam.vp));
@@ -101,7 +116,9 @@ export function CanvasRoot({ current, onHelp }: Props) {
       timer = window.setTimeout(() => {
         if (!alive) return;
         const next = measure();
-        if (!userMovedRef.current && !cam.isFlying()) cam.set(focusFrame(next[focusedRef.current], cam.vp));
+        if (cam.isFlying()) return;
+        if (!userMovedRef.current) cam.set(focusFrame(next[focusedRef.current], cam.vp));
+        else cam.set(cam.view); // re-applies, so the minimap picks up a new viewport size
       }, 80);
     };
     const observer = new ResizeObserver(refit);
@@ -122,12 +139,17 @@ export function CanvasRoot({ current, onHelp }: Props) {
     };
   }, [frameEl]);
 
-  // Fly when the route changes: nav links, hero buttons, back and forward.
+  // Fly when the route changes: nav links, hero buttons, back and forward. location.key also changes when a
+  // link points at the current route, so after a pan that link brings the frame back.
   useEffect(() => {
-    if (focusedRef.current !== current) focusFrameId(current);
-  }, [current, focusFrameId]);
+    if (routeHandledRef.current) {
+      routeHandledRef.current = false;
+      return;
+    }
+    if (focusedRef.current !== current || userMovedRef.current) focusFrameId(current);
+  }, [current, location.key, focusFrameId]);
 
-  // Keyboard focus moves the camera. The viewport is overflow-hidden, so undo any scroll the browser does on focus.
+  // Keyboard focus moves the camera. The viewport clips rather than scrolls; undo any scroll a browser still does.
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -135,9 +157,14 @@ export function CanvasRoot({ current, onHelp }: Props) {
       const el = e.target as HTMLElement;
       // A frame itself gets focus after navigation, and the route effect already flies there.
       if (el.matches("[data-frame]") || !el.closest("[data-frame]")) return;
-      const v = viewport.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      if (r.left < v.left || r.right > v.right || r.top < v.top || r.bottom > v.bottom) showElement(el, 500);
+      const cam = camRef.current;
+      const world = worldRef.current;
+      if (!cam || !world) return;
+      // World coordinates, so a browser scroll that happened before focusin can't hide the problem.
+      const box = rectIn(el, world);
+      const [left, top] = toScreen(cam.view, box.x, box.y);
+      const [right, bottom] = toScreen(cam.view, box.x + box.w, box.y + box.h);
+      if (left < 0 || top < 0 || right > cam.vp.w || bottom > cam.vp.h) showElement(el, 500);
     };
     const onScroll = () => {
       viewport.scrollTop = 0;
@@ -158,8 +185,9 @@ export function CanvasRoot({ current, onHelp }: Props) {
         const el = document.getElementById(elementId);
         const id = el?.closest<HTMLElement>("[data-frame]")?.dataset.frame as FrameId | undefined;
         if (!el || !id) return;
-        focusedRef.current = id; // stops the route effect from also flying to the frame's top
-        navigateRef.current(frameById(id).path);
+        const path = frameById(id).path;
+        routeHandledRef.current = true; // showElement flies; the route effect must not fly to the frame's top too
+        navigateRef.current(path, { replace: normalizePath(pathRef.current) === path });
         showElement(el);
       },
       fitAll: () => {
@@ -173,7 +201,26 @@ export function CanvasRoot({ current, onHelp }: Props) {
         const cam = camRef.current;
         if (!cam) return;
         userMovedRef.current = true;
-        cam.zoomAt(cam.view.z * factor, cam.vp.w / 2, cam.vp.h / 2, true);
+        // From the zoom the camera is heading to, so quick presses don't compound a mid-flight value.
+        cam.zoomAt(cam.target().z * factor, cam.vp.w / 2, cam.vp.h / 2, true);
+      },
+      panBy: (dx, dy) => {
+        const cam = camRef.current;
+        if (!cam) return;
+        userMovedRef.current = true;
+        const v = cam.target();
+        cam.flyTo({ ...v, x: v.x - dx, y: v.y - dy }, 160);
+      },
+      frameEdge: (edge) => {
+        const cam = camRef.current;
+        const r = rectsRef.current;
+        if (!cam || !r) return;
+        const frame = r[currentRef.current];
+        const base = focusFrame(frame, cam.vp);
+        const y = edge === "top" ? base.y : Math.min(base.y, Math.round(cam.vp.h - PAD_TOP - (frame.y + frame.h) * base.z));
+        focusedRef.current = currentRef.current;
+        userMovedRef.current = edge === "bottom";
+        cam.flyTo({ ...base, y }, 500);
       },
       centerOn: (x, y) => {
         const cam = camRef.current;

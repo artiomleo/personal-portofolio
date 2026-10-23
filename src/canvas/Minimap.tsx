@@ -1,5 +1,6 @@
-import { useEffect, useRef, type MouseEvent } from "react";
+import { useRef, type MouseEvent } from "react";
 import { FRAMES } from "@/frames/registry";
+import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useCanvasApi } from "./CanvasApi";
 import { toWorld } from "./camera";
 import { bounds, type FrameRects } from "./layout";
@@ -14,7 +15,7 @@ export function Minimap({ rects }: { rects: FrameRects }) {
   const b = bounds(Object.values(rects));
   const s = Math.min(MAX_W / b.w, MAX_H / b.h);
 
-  useEffect(
+  useIsoLayoutEffect(
     () =>
       api?.subscribe((v) => {
         const el = viewRef.current;

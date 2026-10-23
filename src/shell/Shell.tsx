@@ -43,7 +43,16 @@ export function Shell() {
 
   return (
     <>
-      <a className="skip-link" href="#main">
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          const target = frame && document.querySelector<HTMLElement>(`[data-frame="${frame.id}"]`);
+          if (!target) return;
+          e.preventDefault();
+          target.focus();
+        }}
+      >
         Skip to content
       </a>
       <TopBar onHelp={canvas ? openHelp : undefined} />
