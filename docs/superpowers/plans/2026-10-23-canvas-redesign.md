@@ -1259,7 +1259,13 @@ import { FRAME_NOTES } from "@/content/annotations";
 import { frameById, nextFrame, type FrameId } from "./registry";
 
 type FrameContextValue = { id: FrameId; primary: boolean };
-const FrameContext = createContext<FrameContextValue>({ id: "home", primary: true });
+const FrameContext = createContext<FrameContextValue | null>(null);
+
+function useFrame(): FrameContextValue {
+  const value = useContext(FrameContext);
+  if (!value) throw new Error("FrameTitle and Heading must render inside <Frame>");
+  return value;
+}
 
 type FrameProps = {
   id: FrameId;
@@ -1268,6 +1274,7 @@ type FrameProps = {
   children: ReactNode;
 };
 
+/** A frame section. Its children must render exactly one FrameTitle, which labels the section. */
 export function Frame({ id, primary, children }: FrameProps) {
   const def = frameById(id);
   const next = nextFrame(id);
@@ -1294,7 +1301,7 @@ export function Frame({ id, primary, children }: FrameProps) {
 }
 
 // #region layer:frame-label
-function FrameLabel({ label }: { label: string }) {
+export function FrameLabel({ label }: { label: string }) {
   return (
     <p className="frame-label" aria-hidden="true" data-layer="frame-label">
       <span className="frame-label-mark">#</span> {label}
@@ -1313,7 +1320,7 @@ export function FrameTitle({
   className?: string;
   layer?: string;
 }) {
-  const { id, primary } = useContext(FrameContext);
+  const { id, primary } = useFrame();
   const Tag = primary ? "h1" : "h2";
   return (
     <Tag id={`${id}-title`} className={className} data-layer={layer}>
@@ -1325,7 +1332,7 @@ export function FrameTitle({
 
 /** A heading one (depth 1) or two (depth 2) levels below the frame title. */
 export function Heading({ depth, ...props }: { depth: 1 | 2 } & HTMLAttributes<HTMLHeadingElement>) {
-  const { primary } = useContext(FrameContext);
+  const { primary } = useFrame();
   const level = (primary ? 1 : 2) + depth;
   const Tag = level === 2 ? "h2" : level === 3 ? "h3" : "h4";
   return <Tag {...props} />;
@@ -1361,7 +1368,7 @@ export function PrimaryButton({ to, children }: { to: string; children: ReactNod
 // #region layer:stack-tag
 export function StackTags({ items, label }: { items: string[]; label: string }) {
   return (
-    <ul className="tags" aria-label={label}>
+    <ul className="tags" aria-label={label} role="list">
       {items.map((item) => (
         <li key={item} className="tag" data-layer="stack-tag">
           {item}
@@ -1404,7 +1411,7 @@ export function Home({ primary }: { primary: boolean }) {
           <Heading depth={1} className="hero-now-title">
             Currently
           </Heading>
-          <ul>
+          <ul role="list">
             {profile.currently.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -1441,14 +1448,13 @@ function HeroLede() {
 ```tsx
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { FrameLabel } from "./Frame";
 import { FRAMES } from "./registry";
 
 export function NotFound() {
   return (
-    <section className="frame frame--404" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
-      <p className="frame-label" aria-hidden="true">
-        <span className="frame-label-mark">#</span> 404
-      </p>
+    <section className="frame" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
+      <FrameLabel label="404" />
       <div className="frame-body">
         <header className="frame-head">
           <p className="eyebrow">404</p>
@@ -1457,7 +1463,7 @@ export function NotFound() {
           </h1>
           <p className="frame-lede">There's no frame at this address. Pick one of these instead:</p>
         </header>
-        <ul className="not-found-links">
+        <ul className="not-found-links" role="list">
           {FRAMES.map((f) => (
             <li key={f.id}>
               <Link to={f.path}>{f.label}</Link>
@@ -1495,9 +1501,6 @@ export function NotFound() {
   color: var(--tool-muted);
   white-space: nowrap;
 }
-.frame-label-mark {
-  opacity: 0.7;
-}
 /* #endregion */
 
 .frame-body {
@@ -1527,6 +1530,7 @@ export function NotFound() {
   font: 400 56px/1 var(--font-display);
   letter-spacing: -0.01em;
 }
+/* #endregion */
 .frame-lede {
   margin: 0;
   max-width: 52ch;
@@ -1534,7 +1538,6 @@ export function NotFound() {
   line-height: 1.6;
   color: var(--site-muted);
 }
-/* #endregion */
 
 /* Home */
 .home {
@@ -1628,6 +1631,11 @@ export function NotFound() {
 .btn--primary:hover {
   transform: translateY(-1px);
 }
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+/* #endregion */
 .btn--ghost {
   background: transparent;
   color: var(--site-text);
@@ -1636,11 +1644,6 @@ export function NotFound() {
 .btn--ghost:hover {
   box-shadow: inset 0 0 0 1.5px var(--site-text);
 }
-.btn[disabled] {
-  opacity: 0.6;
-  cursor: progress;
-}
-/* #endregion */
 
 /* #region layer:stack-tag */
 .tags {

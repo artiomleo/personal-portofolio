@@ -207,8 +207,9 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 **First paint:**
 - In canvas layout, the prerendered route frame is styled so it sits exactly where the camera will
   land.
-- After hydration, the other frames, the minimap, the stickies and the cursors mount and the layout is
-  measured. The route frame does not move.
+- After hydration, the other frames, the minimap and the cursors mount and the layout is measured.
+  The route frame does not move. Stickies are part of each frame's markup: page layout hides them,
+  and the canvas shows them from the first paint, so nothing pops in.
 - The layout is measured and the camera placed in a layout effect, before the browser paints.
 
 ### Page layout (phones, tablets, Page view, no JavaScript)
