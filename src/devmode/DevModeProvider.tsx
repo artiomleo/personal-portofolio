@@ -1,6 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { dialogOpen, isTypingTarget } from "@/lib/keys";
 import { applyAccent, type SwatchId } from "./swatches";
+
+const Inspector = lazy(() => import("./Inspector"));
 
 type DevModeState = {
   on: boolean;
@@ -43,7 +45,16 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   }, [on]);
 
   const value = useMemo(() => ({ on, toggle, exit, accent, setAccent }), [on, toggle, exit, accent, setAccent]);
-  return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;
+  return (
+    <DevModeContext.Provider value={value}>
+      {children}
+      {on && (
+        <Suspense fallback={null}>
+          <Inspector />
+        </Suspense>
+      )}
+    </DevModeContext.Provider>
+  );
 }
 
 export function useDevMode(): DevModeState {
