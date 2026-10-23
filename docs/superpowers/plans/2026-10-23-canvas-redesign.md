@@ -148,6 +148,8 @@ git commit -m "chore: remove the old UI and unused dependencies"
   --on-select: #FFFFFF;
   --sticky: #FFE27A;
   --sticky-text: #2A2410;
+  --field-line: #8A8A8A;
+  --danger: #B42318;
 
   --cursor-designer: #D92D72;
   --cursor-pm: #6A4DF5;
@@ -189,6 +191,8 @@ git commit -m "chore: remove the old UI and unused dependencies"
   --select: #3D9BFF;
   --on-select: #0B1220;
   --sticky: #F2D46A;
+  --field-line: #767676;
+  --danger: #FF8A80;
 
   --cursor-artiom: #FFB524;
 
@@ -2514,12 +2518,13 @@ export function sendDraft(text: string): void {
 
 ```ts
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { flushSync } from "react-dom";
 import { z } from "zod";
 import { DRAFT_EVENT } from "./draft";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Enter your name.").max(100, "Use 100 characters or fewer."),
-  email: z.string().trim().email("Enter an email address like name@example.com."),
+  email: z.string().trim().max(254, "Use 254 characters or fewer.").email("Enter an email address like name@example.com."),
   message: z.string().trim().min(10, "Write at least 10 characters.").max(5000, "Use 5,000 characters or fewer."),
 });
 
@@ -2527,24 +2532,41 @@ export type ContactValues = z.infer<typeof schema>;
 export type ContactField = keyof ContactValues;
 export type ContactStatus = "idle" | "sending" | "sent" | "failed";
 
+/** Honeypot field name. Formspree discards it; bots fill it in, people never see it. */
+export const HONEYPOT = "_gotcha";
+export const FORM_ACTION = `https://formspree.io/f/${import.meta.env.VITE_FORM_ID}`;
+
 const EMPTY: ContactValues = { name: "", email: "", message: "" };
 
 export function useContactForm() {
   const [values, setValues] = useState<ContactValues>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<ContactField, string>>>({});
   const [status, setStatus] = useState<ContactStatus>("idle");
+  const [focusRequest, setFocusRequest] = useState(0);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+  const doneRef = useRef<HTMLDivElement>(null);
 
+  // A cursor-chat draft lands in the message field. Focus waits for the field to exist.
   useEffect(() => {
     const onDraft = (e: Event) => {
       const text = (e as CustomEvent<string>).detail;
       setValues((v) => ({ ...v, message: v.message ? `${v.message}\n${text}` : text }));
-      setStatus("idle");
-      messageRef.current?.focus({ preventScroll: true });
+      setErrors((current) => ({ ...current, message: undefined }));
+      setStatus((s) => (s === "sending" ? s : "idle"));
+      setFocusRequest((n) => n + 1);
     };
     window.addEventListener(DRAFT_EVENT, onDraft);
     return () => window.removeEventListener(DRAFT_EVENT, onDraft);
   }, []);
+
+  useEffect(() => {
+    if (focusRequest) messageRef.current?.focus({ preventScroll: true });
+  }, [focusRequest]);
+
+  // Move focus to the confirmation so it's announced and keyboard users aren't dropped on <body>.
+  useEffect(() => {
+    if (status === "sent") doneRef.current?.focus({ preventScroll: true });
+  }, [status]);
 
   const onChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const field = e.target.name as ContactField;
@@ -2555,9 +2577,9 @@ export function useContactForm() {
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (status === "sending") return;
     const form = e.currentTarget;
-    // Honeypot: people never see the "company" field, bots fill it in.
-    if (new FormData(form).get("company")) {
+    if (new FormData(form).get(HONEYPOT)) {
       setStatus("sent");
       return;
     }
@@ -2568,14 +2590,15 @@ export function useContactForm() {
         const field = issue.path[0] as ContactField;
         next[field] ??= issue.message;
       }
-      setErrors(next);
+      // Render the errors before moving focus, so screen readers read the field together with its error.
+      flushSync(() => setErrors(next));
       form.querySelector<HTMLElement>(`[name="${Object.keys(next)[0]}"]`)?.focus();
       return;
     }
     setErrors({});
     setStatus("sending");
     try {
-      const res = await fetch(`https://formspree.io/f/${import.meta.env.VITE_FORM_ID}`, {
+      const res = await fetch(FORM_ACTION, {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
@@ -2589,7 +2612,7 @@ export function useContactForm() {
     }
   };
 
-  return { values, errors, status, onChange, submit, messageRef };
+  return { values, errors, status, onChange, submit, messageRef, doneRef };
 }
 
 function reportError(err: unknown, data: ContactValues): void {
@@ -2612,7 +2635,7 @@ function reportError(err: unknown, data: ContactValues): void {
 import { Github, Linkedin, Mail, MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 import { profile } from "@/content/profile";
-import { useContactForm } from "./contact/useContactForm";
+import { FORM_ACTION, HONEYPOT, useContactForm } from "./contact/useContactForm";
 import { Frame, FrameTitle } from "./Frame";
 import { NewTabNote } from "./ui";
 
@@ -2630,24 +2653,24 @@ export function Contact({ primary }: { primary: boolean }) {
       </header>
 
       {form.status === "sent" ? (
-        <div className="form-done" role="status">
+        <div className="form-done" role="status" tabIndex={-1} ref={form.doneRef}>
           <p className="form-done-title">Message sent</p>
           <p>Thanks for writing. I'll reply to the email address you gave.</p>
         </div>
       ) : (
-        <form className="contact-form" noValidate onSubmit={form.submit}>
+        <form className="contact-form" method="post" action={FORM_ACTION} noValidate onSubmit={form.submit}>
           <Field id="contact-name" label="Name" error={form.errors.name}>
-            <input id="contact-name" name="name" type="text" autoComplete="name" value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
+            <input id="contact-name" name="name" type="text" autoComplete="name" required value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
           </Field>
           <Field id="contact-email" label="Email" error={form.errors.email}>
-            <input id="contact-email" name="email" type="email" autoComplete="email" value={form.values.email} onChange={form.onChange} aria-invalid={!!form.errors.email} aria-describedby={describedBy("email")} />
+            <input id="contact-email" name="email" type="email" autoComplete="email" required value={form.values.email} onChange={form.onChange} aria-invalid={!!form.errors.email} aria-describedby={describedBy("email")} />
           </Field>
           <Field id="contact-message" label="Message" error={form.errors.message}>
-            <textarea id="contact-message" name="message" rows={6} ref={form.messageRef} value={form.values.message} onChange={form.onChange} aria-invalid={!!form.errors.message} aria-describedby={describedBy("message")} />
+            <textarea id="contact-message" name="message" rows={6} ref={form.messageRef} required value={form.values.message} onChange={form.onChange} aria-invalid={!!form.errors.message} aria-describedby={describedBy("message")} />
           </Field>
           <div className="hp" aria-hidden="true">
-            <label htmlFor="contact-company">Company</label>
-            <input id="contact-company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+            <label htmlFor="contact-gotcha">Leave this field empty</label>
+            <input id="contact-gotcha" name={HONEYPOT} type="text" tabIndex={-1} autoComplete="off" />
           </div>
           {form.status === "failed" && (
             <p className="form-error" role="alert">
@@ -2751,7 +2774,7 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
   box-sizing: border-box;
   width: 100%;
   padding: 11px 13px;
-  border: 1.5px solid var(--site-line);
+  border: 1.5px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--site-bg);
   color: var(--site-text);
@@ -2765,32 +2788,25 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 }
 .field input:focus,
 .field textarea:focus {
-  outline: none;
+  outline: 2px solid transparent;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .field [aria-invalid="true"] {
-  border-color: #b42318;
+  border-color: var(--danger);
 }
 .field-error {
   margin: 0;
   font-size: 13.5px;
-  color: #b42318;
+  color: var(--danger);
 }
 /* #endregion */
-
-[data-theme="dark"] .field [aria-invalid="true"] {
-  border-color: #ff8a80;
-}
-[data-theme="dark"] .field-error {
-  color: #ff8a80;
-}
 
 .form-error {
   margin: 0;
   padding: 12px 14px;
   border-radius: var(--radius);
-  background: color-mix(in srgb, #b42318 10%, var(--site-bg));
+  background: color-mix(in srgb, var(--danger) 10%, var(--site-bg));
   font-size: 14.5px;
 }
 .form-error a {
@@ -2805,9 +2821,12 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 .form-done p {
   margin: 0;
 }
-.form-done-title {
-  margin-bottom: 6px !important;
+.form-done .form-done-title {
+  margin: 0 0 6px;
   font: 400 30px/1.1 var(--font-display);
+}
+.form-done:focus {
+  outline: none;
 }
 
 .contact-links {
@@ -2859,18 +2878,24 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 - [ ] **Step 7: Replace `netlify/functions/report-error.mjs`**
 
 ```js
-// Reports contact-form failures to Slack. Accepts only small JSON posts from the site itself.
-const ALLOWED_ORIGINS = [/^https:\/\/(www\.)?artiomleo\.com$/, /^https:\/\/[a-z0-9-]+(--[a-z0-9-]+)?\.netlify\.app$/];
-const MAX_LENGTH = 4096;
+// Reports contact-form failures to Slack. Accepts only small JSON posts from the site and its own deploy previews.
+const MAX_BYTES = 4096;
 
-export default async (req) => {
+const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const field = (value, max) => (typeof value === "string" ? value.slice(0, max) : "");
+
+export default async (req, context) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
+  const allowed = [/^https:\/\/(www\.)?artiomleo\.com$/];
+  const site = context?.site?.name;
+  if (site) allowed.push(new RegExp(`^https://([a-z0-9-]+--)?${site}\\.netlify\\.app$`));
   const origin = req.headers.get("origin") ?? "";
-  if (!ALLOWED_ORIGINS.some((pattern) => pattern.test(origin))) return new Response("Forbidden", { status: 403 });
+  if (!allowed.some((pattern) => pattern.test(origin))) return new Response("Forbidden", { status: 403 });
 
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BYTES) return new Response("Payload too large", { status: 413 });
   const raw = await req.text();
-  if (raw.length > MAX_LENGTH) return new Response("Payload too large", { status: 413 });
+  if (new TextEncoder().encode(raw).length > MAX_BYTES) return new Response("Payload too large", { status: 413 });
 
   let body;
   try {
@@ -2883,18 +2908,28 @@ export default async (req) => {
   }
 
   // VITE_SLACK_WEBHOOK_URL is the old name; it works until the variable is renamed in Netlify.
-  const webhookUrl = Netlify.env.get("SLACK_WEBHOOK_URL") ?? Netlify.env.get("VITE_SLACK_WEBHOOK_URL");
+  const webhookUrl = Netlify.env.get("SLACK_WEBHOOK_URL") || Netlify.env.get("VITE_SLACK_WEBHOOK_URL");
   if (!webhookUrl) return new Response("Reporting is not configured", { status: 500 });
 
-  const slackRes = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text: `Form submission error:\n${JSON.stringify({ error: body.error, data: body.data ?? null }, null, 2)}`,
-    }),
-  });
+  const data = body.data && typeof body.data === "object" ? body.data : {};
+  const report = {
+    error: field(body.error, 1000),
+    name: field(data.name, 100),
+    email: field(data.email, 254),
+    message: field(data.message, 1500),
+  };
 
-  if (!slackRes.ok) return new Response("Failed to notify Slack", { status: 500 });
+  try {
+    const slackRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: `Form submission error:\n\`\`\`${escapeSlack(JSON.stringify(report, null, 2))}\`\`\`` }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!slackRes.ok) return new Response("Failed to notify Slack", { status: 502 });
+  } catch {
+    return new Response("Failed to notify Slack", { status: 502 });
+  }
   return new Response("Reported to Slack", { status: 200 });
 };
 ```
@@ -3992,7 +4027,7 @@ const csp = [
   "connect-src 'self' https://formspree.io https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://formspree.io",
   "object-src 'none'",
 ].join("; ");
 
@@ -5720,6 +5755,7 @@ export function sourceFor(id: LayerId): { tsx: string; css: string } {
 const TOKENS = [
   "--site-text", "--site-bg", "--site-muted", "--site-line", "--site-soft", "--accent", "--on-accent",
   "--tool-text", "--tool-ui", "--tool-bg", "--tool-muted", "--tool-line", "--select", "--sticky", "--sticky-text",
+  "--field-line", "--danger",
 ];
 
 export type ColorSpec = { property: "Text" | "Fill" | "Border"; token: string | null; value: string };
