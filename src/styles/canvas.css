@@ -221,6 +221,7 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  translate: 0 -100%;
 }
 .demo-pin-dot {
   display: grid;
@@ -254,6 +255,9 @@
 [data-devmode] .demo-pin {
   pointer-events: auto;
 }
+[data-devmode] .demo-pin-bubble {
+  animation: none;
+}
 
 /* Cursor chat */
 .chat-layer {
@@ -281,6 +285,10 @@
 .chat-layer.is-open .chat-tag {
   display: none;
 }
+.canvas.is-panning .chat-tag,
+[data-devmode] .chat-tag {
+  display: none;
+}
 .chat-tag kbd {
   margin-left: 4px;
   padding: 0 4px;
@@ -292,7 +300,7 @@
   pointer-events: auto;
 }
 .chat-bubble:focus-within {
-  box-shadow: 0 0 0 2px var(--select);
+  box-shadow: 0 0 0 2px var(--tool-bg), 0 0 0 4px var(--select);
 }
 .chat-bubble input {
   width: 240px;

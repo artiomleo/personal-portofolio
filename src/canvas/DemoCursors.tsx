@@ -66,7 +66,7 @@ export function DemoCursors({ current, rects, live }: Props) {
       const pinOn = tracks.pin !== null && (!animate || (t >= 4.6 && t < 9.8));
       if (pin) {
         pin.hidden = !pinOn;
-        if (pinOn && tracks.pin) place(pin, v, tracks.pin, -4, -40);
+        if (pinOn && tracks.pin) place(pin, v, tracks.pin, -4, 0);
       }
 
       if (!animate) {
@@ -87,18 +87,19 @@ export function DemoCursors({ current, rects, live }: Props) {
       const sel = selectRef.current;
       if (sel) {
         if (t >= 2 && t < 6.8) {
-          const end = t < 3.2 ? d : tracks.select.to;
+          // A marquee while dragging, then the box snaps to the selected title, as in a design tool.
+          const snapped = t >= 3.2;
           const [fx, fy] = tracks.select.from;
-          const w = Math.abs(end[0] - fx);
-          const h = Math.abs(end[1] - fy);
-          place(sel, v, [Math.min(fx, end[0]), Math.min(fy, end[1])]);
+          const x = snapped ? titleBox.x : Math.min(fx, d[0]);
+          const y = snapped ? titleBox.y : Math.min(fy, d[1]);
+          const w = snapped ? titleBox.w : Math.abs(d[0] - fx);
+          const h = snapped ? titleBox.h : Math.abs(d[1] - fy);
+          place(sel, v, [x, y]);
           sel.style.width = `${w * v.z}px`;
           sel.style.height = `${h * v.z}px`;
           sel.hidden = false;
-          if (sizeRef.current) {
-            sizeRef.current.textContent =
-              t < 3.2 ? `${Math.round(w)} × ${Math.round(h)}` : `${Math.round(titleBox.w)} × ${Math.round(titleBox.h)}`;
-          }
+          const label = `${Math.round(w)} × ${Math.round(h)}`;
+          if (sizeRef.current && sizeRef.current.textContent !== label) sizeRef.current.textContent = label;
         } else {
           sel.hidden = true;
         }
@@ -118,7 +119,9 @@ export function DemoCursors({ current, rects, live }: Props) {
         const holding = (t >= 1 && t < 3.6) || (t >= 9.4 && t < 11.8);
         const hand = along(tracks.artiom, t);
         const at: Point = holding ? [hand[0] - GRAB[0], hand[1] - GRAB[1]] : t >= 3.6 && t < 9.4 ? tracks.grab.b : tracks.grab.a;
-        stickyEl.style.transform = `translate(${at[0] - tracks.grab.a[0]}px, ${at[1] - tracks.grab.a[1]}px) rotate(${holding ? 3 : -1.5}deg)`;
+        stickyEl.style.translate = `${at[0] - tracks.grab.a[0]}px ${at[1] - tracks.grab.a[1]}px`;
+        // Adds to the note's own CSS tilt while it's held.
+        stickyEl.style.rotate = holding ? "4.5deg" : "";
       }
     };
 
@@ -145,7 +148,10 @@ export function DemoCursors({ current, rects, live }: Props) {
       window.removeEventListener("pointerdown", onInput);
       window.removeEventListener("wheel", onInput);
       window.removeEventListener("keydown", onInput);
-      if (stickyEl) stickyEl.style.transform = "";
+      if (stickyEl) {
+        stickyEl.style.translate = "";
+        stickyEl.style.rotate = "";
+      }
     };
   }, [api, current, rects, comment, animate]);
 
