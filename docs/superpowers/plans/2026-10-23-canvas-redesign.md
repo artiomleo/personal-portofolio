@@ -993,7 +993,7 @@ The GA snippet is the same tag and configuration as before. `<!--app-head-->` an
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F5F5" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1E1E1E" />
     <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -6605,7 +6605,7 @@ The mark is a canvas cursor on violet, replacing the green "AL" square. The app 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
   <rect width="180" height="180" fill="#6A4DF5"/>
-  <g transform="translate(18 18) scale(0.8)">
+  <g transform="translate(25.2 25.2) scale(0.72)">
     <path d="M38 30v80l20-18.7 13.7 28.3 14.2-6.9-13.7-28h28.3z" fill="#FFFFFF"/>
     <g transform="translate(90 110)">
       <path d="M4 0h56a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H10A10 10 0 0 1 0 30V4a4 4 0 0 1 4-4z" fill="#FFAA00"/>
@@ -6630,10 +6630,10 @@ for size in 16 32 48; do
 done
 magick "$TMP/fav-16.png" "$TMP/fav-32.png" "$TMP/fav-48.png" "$OUT/favicon.ico"
 
-magick -background "#6A4DF5" -density 600 app-icon.svg -resize 180x180 -flatten "$OUT/apple-touch-icon.png"
-magick -background none -density 600 app-icon-rounded.svg -resize 192x192 "$OUT/icon-192.png"
-magick -background none -density 600 app-icon-rounded.svg -resize 512x512 "$OUT/icon-512.png"
-magick -background "#6A4DF5" -density 600 app-icon-maskable.svg -resize 512x512 -flatten "$OUT/icon-maskable-512.png"
+magick -background "#6A4DF5" -density 600 app-icon.svg -resize 180x180 -flatten -alpha off -depth 8 -strip "$OUT/apple-touch-icon.png"
+magick -background none -density 600 app-icon-rounded.svg -resize 192x192 -depth 8 -strip "$OUT/icon-192.png"
+magick -background none -density 600 app-icon-rounded.svg -resize 512x512 -depth 8 -strip "$OUT/icon-512.png"
+magick -background "#6A4DF5" -density 600 app-icon-maskable.svg -resize 512x512 -flatten -alpha off -depth 8 -strip "$OUT/icon-maskable-512.png"
 
 rm -rf "$TMP"
 echo "icons written to public/"
