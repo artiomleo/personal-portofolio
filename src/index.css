@@ -6,4 +6,6 @@
 @import "./styles/experience.css";
 @import "./styles/about.css";
 @import "./styles/contact.css";
+@import "./styles/shell.css";
+@import "./styles/page.css";
 @import "tailwindcss/utilities";

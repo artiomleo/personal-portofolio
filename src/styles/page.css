@@ -1,0 +1,52 @@
+/* Page layout: phones, tablets, Page view, no JavaScript. */
+[data-layout="page"] body {
+  background-color: var(--tool-bg);
+  background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
+  background-size: 20px 20px;
+}
+.page-main {
+  box-sizing: border-box;
+  padding: 52px 16px 72px;
+  outline: none;
+}
+[data-layout="page"] .page-main .frame {
+  width: auto;
+  max-width: var(--frame-w);
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 56px);
+}
+[data-layout="page"] .hero-title {
+  font-size: clamp(44px, 11vw, 76px);
+}
+[data-layout="page"] .frame-title {
+  font-size: clamp(40px, 9vw, 56px);
+}
+[data-layout="page"] .frame-body {
+  gap: 32px;
+}
+
+/* First paint on the canvas, before React takes over: the route's frame sits where the camera will land.
+   --boot-x and --boot-z come from the boot script in index.html; 56px is PAD_TOP. */
+[data-layout="canvas"] body {
+  overflow: hidden;
+}
+[data-layout="canvas"] .page-main {
+  position: fixed;
+  top: var(--bar-h);
+  left: var(--panel-w);
+  right: 0;
+  bottom: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--tool-bg);
+  background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
+  background-size: calc(20px * var(--boot-z, 1)) calc(20px * var(--boot-z, 1));
+  background-position: var(--boot-x, 0px) 56px;
+}
+[data-layout="canvas"] .page-main > .frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform: translate(var(--boot-x, 0px), 56px) scale(var(--boot-z, 1));
+}
