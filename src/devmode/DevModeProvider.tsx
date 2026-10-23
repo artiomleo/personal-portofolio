@@ -27,6 +27,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
       if (e.key === "d" || e.key === "D") {
+        if (e.repeat) return;
         e.preventDefault();
         setOn((v) => !v);
       } else if (e.key === "Escape") {

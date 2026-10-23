@@ -5,7 +5,7 @@ import { FRAMES } from "./registry";
 
 export function NotFound() {
   return (
-    <section className="frame" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
+    <section className="frame" aria-labelledby="not-found-title" tabIndex={-1} style={{ "--frame-w": "640px" } as CSSProperties}>
       <FrameLabel label="404" />
       <div className="frame-body">
         <header className="frame-head">

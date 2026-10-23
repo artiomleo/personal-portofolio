@@ -13,7 +13,7 @@ export function Shell() {
   const { pathname } = useLocation();
   const frame = frameForPath(pathname);
   const { mounted } = useLayout();
-  const firstRender = useRef(true);
+  const lastPath = useRef(pathname);
 
   useRouteMeta(frame?.id ?? "notFound");
 
@@ -22,14 +22,17 @@ export function Shell() {
     if (mounted) document.documentElement.dataset.layout = "page";
   }, [mounted]);
 
+  // On a real route change (not the first render, and not StrictMode's re-run), start at the top and move
+  // focus to the frame now showing, so keyboard and screen-reader users continue from there.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
     window.scrollTo(0, 0);
-    document.getElementById("main")?.focus({ preventScroll: true });
-  }, [pathname]);
+    const target = frame
+      ? document.querySelector<HTMLElement>(`[data-frame="${frame.id}"]`)
+      : document.querySelector<HTMLElement>("#main section");
+    target?.focus({ preventScroll: true });
+  }, [pathname, frame]);
 
   return (
     <>

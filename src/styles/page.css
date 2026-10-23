@@ -1,4 +1,8 @@
 /* Page layout: phones, tablets, Page view, no JavaScript. */
+/* Keep focused elements and skip-link targets clear of the sticky top bar and frame bar. */
+[data-layout="page"] {
+  scroll-padding-top: calc(var(--bar-h) + 56px);
+}
 [data-layout="page"] body {
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
@@ -37,11 +41,17 @@
   right: 0;
   bottom: 0;
   padding: 0;
-  overflow: hidden;
+  /* If JavaScript never loads, the frame can still be scrolled. The scrollbar stays hidden so the frame doesn't shift. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
   background-size: calc(20px * var(--boot-z, 1)) calc(20px * var(--boot-z, 1));
   background-position: var(--boot-x, 0px) 56px;
+}
+[data-layout="canvas"] .page-main::-webkit-scrollbar {
+  display: none;
 }
 [data-layout="canvas"] .page-main > .frame {
   position: absolute;

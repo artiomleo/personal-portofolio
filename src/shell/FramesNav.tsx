@@ -18,7 +18,10 @@ export function FramesNav({ current }: { current?: FrameId }) {
               to={f.path}
               className="frames-link"
               aria-current={current === f.id ? "page" : undefined}
-              onClick={() => canvas?.focusFrame(f.id)}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                canvas?.focusFrame(f.id);
+              }}
             >
               <span className="frames-link-mark" aria-hidden="true">#</span>
               <span>{f.label}</span>

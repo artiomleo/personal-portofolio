@@ -29,6 +29,7 @@ export function Frame({ id, primary, children }: FrameProps) {
       className="frame"
       data-frame={id}
       aria-labelledby={`${id}-title`}
+      tabIndex={-1}
       style={{ "--frame-w": `${def.width}px` } as CSSProperties}
     >
       <FrameLabel label={def.label} />

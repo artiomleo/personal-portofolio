@@ -49,6 +49,7 @@
   margin-left: auto;
 }
 .avatar {
+  position: relative;
   display: grid;
   place-items: center;
   width: 26px;
@@ -65,6 +66,9 @@
 .avatar:first-child {
   margin-left: 0;
 }
+.avatar:nth-child(1) { z-index: 3; }
+.avatar:nth-child(2) { z-index: 2; }
+.avatar:nth-child(3) { z-index: 1; }
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -260,6 +264,9 @@
 
 @media (max-width: 520px) {
   .topbar-file-sub {
+    display: none;
+  }
+  .frames-link-mark {
     display: none;
   }
   .tb-btn .tb-btn-text {
