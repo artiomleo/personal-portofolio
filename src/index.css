@@ -2,4 +2,5 @@
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/frames.css";
+@import "./styles/projects.css";
 @import "tailwindcss/utilities";
