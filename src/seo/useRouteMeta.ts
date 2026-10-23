@@ -41,6 +41,7 @@ export function useRouteMeta(id: RouteId): void {
     setMeta("name", "twitter:description", meta.description);
     setMeta("name", "twitter:image", image);
     if (url) setMeta("property", "og:url", url);
+    else document.head.querySelector('meta[property="og:url"]')?.remove();
     setCanonical(url);
   }, [id]);
 }

@@ -16,7 +16,7 @@ export const ROUTES: RouteMeta[] = [
   {
     id: "home",
     path: "/",
-    title: "Artiom Leontiev · Senior Frontend Engineer, AI-powered applications",
+    title: "Artiom Leontiev · Senior Frontend Engineer, AI-powered apps",
     description: "Senior frontend engineer in Cluj-Napoca building AI-powered web apps with React and Vue: LLM integrations, RAG, agents and MCP servers.",
     image: "/og/home.png",
     imageAlt: "Artiom Leontiev, Senior Frontend Engineer, AI-powered applications",
@@ -49,7 +49,7 @@ export const ROUTES: RouteMeta[] = [
     id: "contact",
     path: "/contact",
     title: "Contact · Artiom Leontiev",
-    description: "Get in touch about frontend or AI product work.",
+    description: "Get in touch with Artiom Leontiev about frontend architecture, React and Vue work, or AI product engineering. Based in Cluj-Napoca, Romania.",
     image: "/og/contact.png",
     imageAlt: "Contact Artiom Leontiev",
   },
