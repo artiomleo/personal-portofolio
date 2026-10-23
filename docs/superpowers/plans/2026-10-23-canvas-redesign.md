@@ -1265,6 +1265,7 @@ git commit -m "feat: add camera math, frame layout and canvas API context"
 
 ```tsx
 import { createContext, useContext, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FRAME_NOTES } from "@/content/annotations";
 import { frameById, nextFrame, type FrameId } from "./registry";
@@ -1305,7 +1306,7 @@ export function Frame({ id, primary, children }: FrameProps) {
       {sticky && <Sticky frame={id} text={sticky} />}
       {next && (
         <Link className="frame-next" to={next.path}>
-          Next: {next.label} <span aria-hidden="true">→</span>
+          Next: {next.label} <ArrowRight size={16} aria-hidden="true" />
         </Link>
       )}
     </section>
@@ -1699,6 +1700,7 @@ export function NotFound() {
 
 .frame-next {
   display: inline-flex;
+  align-items: center;
   gap: 6px;
   margin-top: 48px;
   font-weight: 600;
@@ -1866,8 +1868,8 @@ export function Projects({ primary }: { primary: boolean }) {
           Side projects
         </Heading>
         <div className="side-list">
-          {sideProjects.map((p) => (
-            <SideProjectCard key={p.slug} project={p} />
+          {sideProjects.map((p, i) => (
+            <SideProjectCard key={p.slug} project={p} priority={i === 0} />
           ))}
         </div>
       </section>
@@ -1886,13 +1888,21 @@ export function Projects({ primary }: { primary: boolean }) {
 }
 
 // #region layer:project-card
-function SideProjectCard({ project }: { project: SideProject }) {
+function SideProjectCard({ project, priority = false }: { project: SideProject; priority?: boolean }) {
   const { image } = project;
   return (
     <article className="side-card" id={`project-${project.slug}`} data-layer="project-card">
       <picture className="side-shot">
         <source srcSet={image.avif} type="image/avif" />
-        <img src={image.webp} alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+        <img
+          src={image.webp}
+          alt={image.alt}
+          width={image.width}
+          height={image.height}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          {...(priority ? { fetchpriority: "high" } : {})}
+        />
       </picture>
       <div className="side-body">
         <Heading depth={2} className="card-title">
@@ -4029,12 +4039,24 @@ for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
 }
 
 const assets = await readdir(path.join(dist, "assets"));
-const heroFont = assets.find((f) => /^instrument-serif-latin-400-normal-[\w-]+\.woff2$/.test(f));
-if (!heroFont) {
-  if (process.env.CI) throw new Error("prerender: hero font file not found; did a font package rename its files?");
-  console.warn("prerender: hero font not found, skipping the preload");
+// The hero headline uses both the regular and the italic cut; preload both so it renders at its final size early.
+const heroFonts = ["normal", "italic"].map((style) =>
+  assets.find((f) => new RegExp(`^instrument-serif-latin-400-${style}-[\\w-]+\\.woff2$`).test(f)),
+);
+if (heroFonts.some((f) => !f)) {
+  if (process.env.CI) throw new Error("prerender: hero font files not found; did a font package rename its files?");
+  console.warn("prerender: hero font files not found, skipping the preload");
 }
-const preload = heroFont ? `<link rel="preload" href="/assets/${heroFont}" as="font" type="font/woff2" crossorigin>` : "";
+const preload = heroFonts
+  .filter(Boolean)
+  .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`)
+  .join("\n    ");
+
+// Inline the main stylesheet: one less render-blocking request on first load (about 11 KB gzipped).
+const stylesheet = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/);
+if (!stylesheet) throw new Error("prerender: main stylesheet link not found in dist/index.html");
+const css = await readFile(path.join(dist, stylesheet[1]), "utf8");
+const inlined = template.replace(stylesheet[0], () => `<style>${css}</style>`);
 
 const scriptHashes = new Set();
 const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g;
@@ -4042,7 +4064,7 @@ const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>
 for (const route of routes) {
   const { html, head } = render(route.path);
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
-  const page = template.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
+  const page = inlined.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
   if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
     throw new Error("prerender: VITE_FORM_ID is not set for the production build");
   }
