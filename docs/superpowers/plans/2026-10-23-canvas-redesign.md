@@ -3960,7 +3960,8 @@ const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>
 
 for (const route of routes) {
   const { html, head } = render(route.path);
-  const page = template.replace("<!--app-head-->", `${preload}\n    ${head}`).replace("<!--app-html-->", html);
+  // Replacer functions, so a "$" in the content is never read as a replacement pattern.
+  const page = template.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
   for (const match of page.matchAll(inlineScript)) {
     scriptHashes.add(`'sha256-${createHash("sha256").update(match[1]).digest("base64")}'`);
   }
