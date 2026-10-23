@@ -1,0 +1,81 @@
+.roles {
+  display: grid;
+  gap: 48px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* #region layer:experience-entry */
+.role {
+  display: grid;
+  gap: 20px;
+  padding-top: 24px;
+  border-top: 1px solid var(--site-line);
+}
+.role-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 24px;
+  align-items: baseline;
+}
+.role-title {
+  margin: 0;
+  font: 400 34px/1.1 var(--font-display);
+}
+.role-meta {
+  grid-column: 1;
+  margin: 0;
+  font-size: 15px;
+  color: var(--site-muted);
+}
+.role-years {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  font: 500 13px/1.6 var(--font-mono);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.engagements {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0 0 0 20px;
+  list-style: none;
+  border-left: 2px solid var(--site-soft);
+}
+.engagement {
+  display: grid;
+  gap: 6px;
+}
+.engagement-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.engagement-years {
+  margin: 0;
+  font: 500 12.5px/1.5 var(--font-mono);
+  color: var(--site-muted);
+}
+.points {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+/* #endregion */
+
+@media (max-width: 640px) {
+  [data-layout="page"] .role-head {
+    grid-template-columns: 1fr;
+  }
+  [data-layout="page"] .role-years {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}

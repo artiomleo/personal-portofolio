@@ -3,4 +3,6 @@
 @import "./styles/base.css";
 @import "./styles/frames.css";
 @import "./styles/projects.css";
+@import "./styles/experience.css";
+@import "./styles/about.css";
 @import "tailwindcss/utilities";
