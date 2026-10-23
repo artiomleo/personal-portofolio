@@ -18,6 +18,8 @@ export function useCanvasShortcuts(api: CanvasApi | null, onHelp: () => void) {
     if (!api) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
+      // Inside the Dev Mode panel, arrow, Page, Home, End and Space keys scroll the panel and its code.
+      if ((e.target as Element).closest?.(".inspector") && /^(Arrow\w+|PageUp|PageDown|Home|End| )$/.test(e.key)) return;
       if (/^[1-5]$/.test(e.key)) {
         e.preventDefault();
         if (e.repeat) return;

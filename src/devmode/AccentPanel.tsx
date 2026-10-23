@@ -20,7 +20,7 @@ export function AccentPanel({ typed, editing }: { typed: string | null; editing:
         )}
       </p>
       <p className="accent-line">
-        <code className="accent-name">--accent</code>:<code className="accent-value">{value}</code>
+        <code className="accent-name">--accent</code>: <code className="accent-value">{value}</code>
         {editing && <span className="accent-caret" aria-hidden="true" />};
       </p>
       <div className="accent-swatches" role="group" aria-label="Try an accent colour">

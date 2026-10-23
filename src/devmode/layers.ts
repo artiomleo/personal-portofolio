@@ -17,4 +17,5 @@ export const LAYERS = {
 
 export type LayerId = keyof typeof LAYERS;
 
-export const isLayerId = (value: string | undefined): value is LayerId => value !== undefined && value in LAYERS;
+export const isLayerId = (value: string | undefined): value is LayerId =>
+  value !== undefined && Object.prototype.hasOwnProperty.call(LAYERS, value);

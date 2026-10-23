@@ -60,7 +60,7 @@ export function useAccentDemo(enabled: boolean, lastActivity: MutableRefObject<n
         applyAccent(next);
         shown = next;
         step++;
-        await sleep(HOLD_MS);
+        for (let waited = 0; waited < HOLD_MS && !stopped && idle(); waited += 100) await sleep(100);
       }
     };
     run();

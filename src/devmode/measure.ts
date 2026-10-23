@@ -1,4 +1,3 @@
-// Site tokens come first, so a value shared with a tool token resolves to the site token.
 const TOKENS = [
   "--site-text", "--site-bg", "--site-muted", "--site-line", "--site-soft", "--accent", "--on-accent",
   "--tool-text", "--tool-ui", "--tool-bg", "--tool-muted", "--tool-line", "--select", "--sticky", "--sticky-text",
@@ -6,6 +5,13 @@ const TOKENS = [
 ];
 
 export type ColorSpec = { property: "Text" | "Fill" | "Border"; token: string | null; value: string };
+
+// Several tokens can share a hex (white is site-bg and on-accent); pick the one that fits the property.
+const PREFER: Record<ColorSpec["property"], string[]> = {
+  Text: ["--on-accent", "--site-text", "--tool-text", "--sticky-text", "--site-muted", "--tool-muted", "--accent", "--danger"],
+  Fill: ["--site-bg", "--accent", "--site-soft", "--tool-ui", "--tool-bg", "--sticky", "--select"],
+  Border: ["--field-line", "--site-line", "--tool-line", "--accent", "--danger", "--select"],
+};
 
 export type Specs = {
   width: number;
@@ -27,11 +33,16 @@ function toHex(rgb: string): string | null {
 export function measure(el: HTMLElement): Specs {
   const cs = getComputedStyle(el);
   const root = getComputedStyle(document.documentElement);
-  const tokenByHex = new Map<string, string>();
+  const tokensByHex = new Map<string, string[]>();
   for (const token of TOKENS) {
     const value = root.getPropertyValue(token).trim().toUpperCase();
-    if (value && !tokenByHex.has(value)) tokenByHex.set(value, token);
+    if (value) tokensByHex.set(value, [...(tokensByHex.get(value) ?? []), token]);
   }
+  const tokenFor = (property: ColorSpec["property"], hex: string) => {
+    const matches = tokensByHex.get(hex);
+    if (!matches) return null;
+    return PREFER[property].find((t) => matches.includes(t)) ?? matches[0];
+  };
   const candidates: Array<[ColorSpec["property"], string]> = [
     ["Text", cs.color],
     ["Fill", cs.backgroundColor],
@@ -40,7 +51,7 @@ export function measure(el: HTMLElement): Specs {
   const colors: ColorSpec[] = [];
   for (const [property, value] of candidates) {
     const hex = value ? toHex(value) : null;
-    if (hex) colors.push({ property, token: tokenByHex.get(hex) ?? null, value: hex });
+    if (hex) colors.push({ property, token: tokenFor(property, hex), value: hex });
   }
   const lineHeight = cs.lineHeight === "normal" ? "normal" : String(Math.round(parseFloat(cs.lineHeight)));
   return {

@@ -61,7 +61,7 @@
 /* Panel: right side on the canvas, bottom sheet in page layout */
 .inspector {
   position: fixed;
-  z-index: 35;
+  z-index: 42;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -79,14 +79,26 @@
   width: 340px;
   border-left: 1px solid var(--tool-line);
 }
+/* The canvas shrinks beside the panel, so the zoom controls, focus-follow and auto-select all see the real visible area. */
+[data-devmode][data-layout="canvas"] .canvas {
+  right: 340px;
+}
 [data-layout="page"] .inspector {
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 62vh;
+  max-height: 50vh;
+  max-height: 50dvh;
   border-top: 1px solid var(--tool-line);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -12px 32px -16px rgb(0 0 0 / 0.35);
+}
+/* Room at the end of the page and for focused elements, so nothing stays hidden under the bottom sheet. */
+[data-devmode][data-layout="page"] body {
+  padding-bottom: var(--sheet-h, 0px);
+}
+[data-devmode][data-layout="page"] {
+  scroll-padding-bottom: var(--sheet-h, 0px);
 }
 .inspector-head {
   position: relative;
@@ -188,12 +200,8 @@
   fill: #1e1e1e;
 }
 .accent-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
   margin: 0;
-  font: 12.5px var(--font-mono);
+  font: 12.5px/1.6 var(--font-mono);
 }
 .accent-name {
   color: var(--tk-property);
@@ -205,7 +213,8 @@
   display: inline-block;
   width: 2px;
   height: 15px;
-  margin-left: -4px;
+  margin-left: 1px;
+  vertical-align: -3px;
   background: var(--cursor-artiom);
   animation: caret-blink 1s steps(1) infinite;
 }
