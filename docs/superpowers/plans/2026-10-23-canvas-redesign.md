@@ -6,7 +6,7 @@
 
 **Architecture:** Vite + React 18 SPA, prerendered at build time by our own script (`vite build --ssr` plus `scripts/prerender.mjs`), so every route ships its own HTML. The markup is identical in both layouts. A synchronous boot script in `index.html` picks `data-layout="canvas|page"` before first paint, and canvas-only parts mount after hydration. Content lives in typed data under `src/content/`. The camera math is pure functions; a small controller class writes transforms straight to the DOM.
 
-**Tech Stack:** React 18, react-router-dom 6, Vite 5, Tailwind 3 (preflight only), plain CSS with design tokens, Fontsource (Onest, Instrument Serif, JetBrains Mono), sugar-high, zod, lucide-react, Netlify (static hosting plus one function), ImageMagick and headless Chrome for assets.
+**Tech Stack:** React 18, react-router-dom 6, Vite 5, Tailwind 3 (preflight reset only, no utilities), plain CSS with design tokens, Fontsource (Onest, Instrument Serif, JetBrains Mono), sugar-high, zod, lucide-react, Netlify (static hosting plus one function), ImageMagick and headless Chrome for assets.
 
 **Spec:** `docs/superpowers/specs/2026-10-23-canvas-redesign-design.md`
 
@@ -285,7 +285,6 @@ kbd { font-family: var(--font-mono); font-size: 0.85em; }
 @import "tailwindcss/base";
 @import "./styles/tokens.css";
 @import "./styles/base.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 4: Replace `tailwind.config.ts`**
@@ -293,7 +292,7 @@ kbd { font-family: var(--font-mono); font-size: 0.85em; }
 ```ts
 import type { Config } from "tailwindcss";
 
-// Tailwind supplies the preflight reset; components use the plain CSS in src/styles.
+// Tailwind supplies only the preflight reset (src/index.css imports tailwindcss/base, not utilities); components use the plain CSS in src/styles.
 export default {
   darkMode: ["selector", '[data-theme="dark"]'],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
@@ -1734,7 +1733,6 @@ export function NotFound() {
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/frames.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 7: Verify**
@@ -2066,7 +2064,6 @@ function ClientCard({ project }: { project: ClientProject }) {
 @import "./styles/base.css";
 @import "./styles/frames.css";
 @import "./styles/projects.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 5: Verify**
@@ -2483,7 +2480,6 @@ export function About({ primary }: { primary: boolean }) {
 @import "./styles/projects.css";
 @import "./styles/experience.css";
 @import "./styles/about.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 6: Verify**
@@ -2883,7 +2879,6 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 @import "./styles/experience.css";
 @import "./styles/about.css";
 @import "./styles/contact.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 7: Replace `netlify/functions/report-error.mjs`**
@@ -3942,7 +3937,6 @@ else createRoot(root).render(app);
 @import "./styles/contact.css";
 @import "./styles/shell.css";
 @import "./styles/page.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 15: Verify the build**
@@ -5045,7 +5039,6 @@ Task 14 appends the demo cursor and cursor chat styles to this file.
 @import "./styles/shell.css";
 @import "./styles/page.css";
 @import "./styles/canvas.css";
-@import "tailwindcss/utilities";
 ```
 
 - [ ] **Step 11: Verify the build**
