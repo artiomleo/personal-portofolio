@@ -1213,6 +1213,10 @@ export type CanvasApi = {
   fitAll: () => void;
   zoomBy: (factor: number) => void;
   centerOn: (x: number, y: number) => void;
+  /** Move the camera by screen px (keyboard panning). */
+  panBy: (dx: number, dy: number) => void;
+  /** Move to the top or bottom of the current route's frame. */
+  frameEdge: (edge: "top" | "bottom") => void;
   /** Called on every camera change, and once immediately. Returns an unsubscribe function. */
   subscribe: (fn: (view: View) => void) => () => void;
   getView: () => View;
@@ -4225,6 +4229,16 @@ export class CameraController {
     return this.flight !== null;
   }
 
+  /** When the current flight started (performance.now() time), or null when the camera isn't flying. */
+  flightStartedAt(): number | null {
+    return this.flight?.start ?? null;
+  }
+
+  /** Where the camera is heading: the flight's destination, or the current view. */
+  target(): View {
+    return this.flight?.to ?? this.view;
+  }
+
   set(view: View) {
     this.stop();
     this.view = view;
@@ -4270,15 +4284,16 @@ export class CameraController {
     this.moving();
   }
 
+  /** Stops any flight and the pending rest, so the rest timer can't fire mid-flight. */
   stop() {
     this.flight = null;
     cancelAnimationFrame(this.raf);
     this.raf = 0;
+    window.clearTimeout(this.restTimer);
   }
 
   cancel() {
     this.stop();
-    window.clearTimeout(this.restTimer);
   }
 
   // While moving, use fractional px and will-change; at rest, round to whole px so text stays crisp.
@@ -4308,15 +4323,24 @@ import type { CameraController } from "./controller";
 
 // Pointer-downs on these never start a pan.
 const NO_PAN = "a, button, input, textarea, select, label, summary, [contenteditable], [data-nopan]";
+// Wheel events closer together than this belong to one gesture, trackpad momentum included.
+const WHEEL_STREAM_MS = 150;
 
 /** Drag to pan, wheel to pan, Ctrl/⌘ + wheel or pinch to zoom. Returns a function that detaches everything. */
 export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, onUser: () => void): () => void {
   let pan: { x: number; y: number; id: number; moved: boolean } | null = null;
   let gestureZoom = 1;
+  let lastWheel = 0;
+  let wheelStreamStart = 0;
 
   const swallowClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  };
+
+  const endPan = () => {
+    pan = null;
+    viewport.classList.remove("is-panning");
   };
 
   const onDown = (e: PointerEvent) => {
@@ -4327,6 +4351,11 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
 
   const onMove = (e: PointerEvent) => {
     if (!pan || e.pointerId !== pan.id) return;
+    // The button was released outside the canvas before capture started.
+    if (!(e.buttons & 1)) {
+      endPan();
+      return;
+    }
     const dx = e.clientX - pan.x;
     const dy = e.clientY - pan.y;
     if (!pan.moved) {
@@ -4347,21 +4376,33 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
       window.addEventListener("click", swallowClick, { capture: true, once: true });
       window.setTimeout(() => window.removeEventListener("click", swallowClick, { capture: true }), 0);
     }
-    pan = null;
-    viewport.classList.remove("is-panning");
+    endPan();
   };
 
   const onWheel = (e: WheelEvent) => {
+    const now = performance.now();
+    if (now - lastWheel >= WHEEL_STREAM_MS) wheelStreamStart = now;
+    lastWheel = now;
+    // A textarea that can scroll keeps the wheel.
+    const scroller = (e.target as Element).closest?.("textarea");
+    if (scroller && scroller.scrollHeight > scroller.clientHeight) return;
     e.preventDefault();
+    const zooming = e.ctrlKey || e.metaKey;
+    // Momentum from a scroll that began before a flight would cancel it; ignore that stream until it ends.
+    const flightStart = cam.flightStartedAt();
+    if (!zooming && flightStart !== null && wheelStreamStart < flightStart) return;
     onUser();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? cam.vp.h : 1;
-    if (e.ctrlKey || e.metaKey) {
+    if (zooming) {
       const r = viewport.getBoundingClientRect();
       cam.zoomAt(cam.view.z * Math.exp(-e.deltaY * unit * 0.0025), e.clientX - r.left, e.clientY - r.top);
     } else {
       cam.panBy(-e.deltaX * unit, -e.deltaY * unit);
     }
   };
+
+  // Images would otherwise start a native drag instead of a pan.
+  const onDragStart = (e: DragEvent) => e.preventDefault();
 
   // Safari reports trackpad pinches as gesture events.
   type Gesture = Event & { scale: number; clientX: number; clientY: number };
@@ -4382,6 +4423,7 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
   viewport.addEventListener("pointerup", onUp);
   viewport.addEventListener("pointercancel", onUp);
   viewport.addEventListener("wheel", onWheel, { passive: false });
+  viewport.addEventListener("dragstart", onDragStart);
   viewport.addEventListener("gesturestart", onGestureStart);
   viewport.addEventListener("gesturechange", onGestureChange);
 
@@ -4391,6 +4433,7 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
     viewport.removeEventListener("pointerup", onUp);
     viewport.removeEventListener("pointercancel", onUp);
     viewport.removeEventListener("wheel", onWheel);
+    viewport.removeEventListener("dragstart", onDragStart);
     viewport.removeEventListener("gesturestart", onGestureStart);
     viewport.removeEventListener("gesturechange", onGestureChange);
   };
@@ -4401,14 +4444,16 @@ export function attachCanvasInput(viewport: HTMLElement, cam: CameraController, 
 
 ```tsx
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef, useState } from "react";
+import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useCanvasApi } from "./CanvasApi";
 
 export function ZoomControls() {
   const api = useCanvasApi();
   const label = useRef<HTMLSpanElement>(null);
+  const [announcement, setAnnouncement] = useState("");
 
-  useEffect(
+  useIsoLayoutEffect(
     () =>
       api?.subscribe((v) => {
         if (label.current) label.current.textContent = `${Math.round(v.z * 100)}%`;
@@ -4417,20 +4462,31 @@ export function ZoomControls() {
   );
 
   if (!api) return null;
+
+  // Zoom changes are announced once they settle; the visible percentage updates every frame.
+  const zoom = (factor?: number) => {
+    if (factor) api.zoomBy(factor);
+    else api.fitAll();
+    window.setTimeout(() => setAnnouncement(`Zoom ${Math.round(api.getView().z * 100)}%`), factor ? 300 : 950);
+  };
+
   return (
     <div className="zoom" role="group" aria-label="Zoom" data-nopan>
-      <button type="button" onClick={() => api.zoomBy(0.8)} aria-label="Zoom out">
+      <button type="button" onClick={() => zoom(0.8)} aria-label="Zoom out">
         <Minus size={15} aria-hidden="true" />
       </button>
-      <span ref={label} className="zoom-value">
+      <span ref={label} className="zoom-value" aria-hidden="true">
         100%
       </span>
-      <button type="button" onClick={() => api.zoomBy(1.25)} aria-label="Zoom in">
+      <button type="button" onClick={() => zoom(1.25)} aria-label="Zoom in">
         <Plus size={15} aria-hidden="true" />
       </button>
-      <button type="button" className="zoom-fit" onClick={() => api.fitAll()}>
+      <button type="button" className="zoom-fit" onClick={() => zoom()} aria-label="Fit all frames">
         Fit
       </button>
+      <span className="visually-hidden" aria-live="polite">
+        {announcement}
+      </span>
     </div>
   );
 }
@@ -4439,8 +4495,9 @@ export function ZoomControls() {
 - [ ] **Step 4: Create `src/canvas/Minimap.tsx`**
 
 ```tsx
-import { useEffect, useRef, type MouseEvent } from "react";
+import { useRef, type MouseEvent } from "react";
 import { FRAMES } from "@/frames/registry";
+import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useCanvasApi } from "./CanvasApi";
 import { toWorld } from "./camera";
 import { bounds, type FrameRects } from "./layout";
@@ -4455,7 +4512,7 @@ export function Minimap({ rects }: { rects: FrameRects }) {
   const b = bounds(Object.values(rects));
   const s = Math.min(MAX_W / b.w, MAX_H / b.h);
 
-  useEffect(
+  useIsoLayoutEffect(
     () =>
       api?.subscribe((v) => {
         const el = viewRef.current;
@@ -4499,40 +4556,94 @@ export function Minimap({ rects }: { rects: FrameRects }) {
 
 ```ts
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { FRAMES } from "@/frames/registry";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FRAMES, normalizePath } from "@/frames/registry";
 import { dialogOpen, isTypingTarget } from "@/lib/keys";
 import type { CanvasApi } from "./CanvasApi";
 
-/** 1–5 jump to frames, 0 fits all, + and − zoom, ? opens the shortcuts. D and Esc live in DevModeProvider. */
+// Space activates these, so it must not pan while one has focus.
+const ACTIVATES_ON_SPACE = "a, button, summary, [role='button']";
+
+/**
+ * 1–5 jump to frames, 0 fits all, + and − zoom, arrows and Page keys move, Home and End go to the
+ * frame's top and bottom, ? opens the shortcuts. D and Esc live in DevModeProvider.
+ */
 export function useCanvasShortcuts(api: CanvasApi | null, onHelp: () => void) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   useEffect(() => {
     if (!api) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
-      const index = "12345".indexOf(e.key);
-      if (index !== -1 && FRAMES[index]) {
+      if (/^[1-5]$/.test(e.key)) {
         e.preventDefault();
-        api.focusFrame(FRAMES[index].id);
-        navigate(FRAMES[index].path);
-      } else if (e.key === "0") {
-        e.preventDefault();
-        api.fitAll();
-      } else if (e.key === "+" || e.key === "=") {
-        e.preventDefault();
-        api.zoomBy(1.25);
-      } else if (e.key === "-") {
-        e.preventDefault();
-        api.zoomBy(0.8);
-      } else if (e.key === "?") {
-        e.preventDefault();
-        onHelp();
+        if (e.repeat) return;
+        const frame = FRAMES[Number(e.key) - 1];
+        api.focusFrame(frame.id);
+        navigate(frame.path, { replace: normalizePath(pathname) === frame.path });
+        return;
+      }
+      const screen = api.getViewport().h * 0.8;
+      switch (e.key) {
+        case "0":
+          e.preventDefault();
+          if (!e.repeat) api.fitAll();
+          break;
+        case "+":
+        case "=":
+          e.preventDefault();
+          api.zoomBy(1.25);
+          break;
+        case "-":
+          e.preventDefault();
+          api.zoomBy(0.8);
+          break;
+        case "?":
+          e.preventDefault();
+          if (!e.repeat) onHelp();
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          api.panBy(0, 60);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          api.panBy(0, -60);
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          api.panBy(60, 0);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          api.panBy(-60, 0);
+          break;
+        case "PageDown":
+          e.preventDefault();
+          api.panBy(0, screen);
+          break;
+        case "PageUp":
+          e.preventDefault();
+          api.panBy(0, -screen);
+          break;
+        case " ":
+          if ((e.target as Element).closest?.(ACTIVATES_ON_SPACE)) return;
+          e.preventDefault();
+          api.panBy(0, e.shiftKey ? -screen : screen);
+          break;
+        case "Home":
+          e.preventDefault();
+          api.frameEdge("top");
+          break;
+        case "End":
+          e.preventDefault();
+          api.frameEdge("bottom");
+          break;
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [api, navigate, onHelp]);
+  }, [api, navigate, pathname, onHelp]);
 }
 ```
 
@@ -4549,6 +4660,9 @@ const SHORTCUTS: Array<[string, string]> = [
   ["+ / −", "Zoom in or out"],
   ["Ctrl/⌘ + scroll", "Zoom at the pointer"],
   ["Scroll or drag", "Move around the canvas"],
+  ["Arrow keys", "Move around the canvas"],
+  ["Page Up / Page Down, Space", "Move by a screen"],
+  ["Home / End", "Top or bottom of the frame"],
   ["D", "Turn Dev Mode on or off"],
   ["/", "Open cursor chat"],
   ["?", "Show these shortcuts"],
@@ -4583,13 +4697,14 @@ export const ShortcutsDialog = forwardRef<ShortcutsHandle>(function ShortcutsDia
 
 ```tsx
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FRAME_COMPONENTS } from "@/frames";
-import { FRAMES, frameById, type FrameId } from "@/frames/registry";
+import { FRAMES, frameById, normalizePath, type FrameId } from "@/frames/registry";
 import { useLayout } from "@/layout/LayoutProvider";
 import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { useRegisterCanvasApi, type CanvasApi } from "./CanvasApi";
-import { centerOn, fitRect, focusFrame } from "./camera";
+import { centerOn, fitRect, focusFrame, toScreen } from "./camera";
+import { PAD_TOP } from "./constants";
 import { CameraController } from "./controller";
 import { attachCanvasInput } from "./input";
 import { bounds, layoutFrames, type FrameRects, type FrameSizes } from "./layout";
@@ -4600,20 +4715,31 @@ import { ZoomControls } from "./ZoomControls";
 
 type Props = { current: FrameId; onHelp: () => void };
 
+const sameRects = (a: FrameRects | null, b: FrameRects) =>
+  a !== null &&
+  FRAMES.every(({ id }) => a[id].x === b[id].x && a[id].y === b[id].y && a[id].w === b[id].w && a[id].h === b[id].h);
+
 export function CanvasRoot({ current, onHelp }: Props) {
   const viewportRef = useRef<HTMLElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const camRef = useRef<CameraController | null>(null);
   const rectsRef = useRef<FrameRects | null>(null);
-  /** The frame the camera is on. The route effect only flies when the route differs from it. */
+  /** The frame the camera was last sent to. */
   const focusedRef = useRef<FrameId>(current);
-  /** True after the visitor pans or zooms; resizes then keep their view instead of refitting the frame. */
+  /** True after the visitor pans or zooms, or the camera moved to a focused element; resizes then keep the view. */
   const userMovedRef = useRef(false);
+  /** Set by focusElement, which flies on its own, so the route effect skips that one navigation. */
+  const routeHandledRef = useRef(false);
+  const currentRef = useRef(current);
+  currentRef.current = current;
   const [rects, setRects] = useState<FrameRects | null>(null);
   const [api, setApi] = useState<CanvasApi | null>(null);
   const { reducedMotion } = useLayout();
   const reducedRef = useRef(reducedMotion);
   reducedRef.current = reducedMotion;
+  const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
   const navigate = useNavigate();
   // react-router hands out a new navigate function on every route change; a ref keeps the API object stable.
   const navigateRef = useRef(navigate);
@@ -4672,9 +4798,12 @@ export function CanvasRoot({ current, onHelp }: Props) {
         el.style.left = `${next[f.id].x}px`;
         el.style.top = `${next[f.id].y}px`;
       }
-      rectsRef.current = next;
-      setRects(next);
-      return next;
+      // Keep the same object when nothing moved, so consumers of `rects` don't re-plan.
+      if (!sameRects(rectsRef.current, next)) {
+        rectsRef.current = next;
+        setRects(next);
+      }
+      return rectsRef.current!;
     };
 
     cam.set(focusFrame(measure()[focusedRef.current], cam.vp));
@@ -4685,7 +4814,9 @@ export function CanvasRoot({ current, onHelp }: Props) {
       timer = window.setTimeout(() => {
         if (!alive) return;
         const next = measure();
-        if (!userMovedRef.current && !cam.isFlying()) cam.set(focusFrame(next[focusedRef.current], cam.vp));
+        if (cam.isFlying()) return;
+        if (!userMovedRef.current) cam.set(focusFrame(next[focusedRef.current], cam.vp));
+        else cam.set(cam.view); // re-applies, so the minimap picks up a new viewport size
       }, 80);
     };
     const observer = new ResizeObserver(refit);
@@ -4706,12 +4837,17 @@ export function CanvasRoot({ current, onHelp }: Props) {
     };
   }, [frameEl]);
 
-  // Fly when the route changes: nav links, hero buttons, back and forward.
+  // Fly when the route changes: nav links, hero buttons, back and forward. location.key also changes when a
+  // link points at the current route, so after a pan that link brings the frame back.
   useEffect(() => {
-    if (focusedRef.current !== current) focusFrameId(current);
-  }, [current, focusFrameId]);
+    if (routeHandledRef.current) {
+      routeHandledRef.current = false;
+      return;
+    }
+    if (focusedRef.current !== current || userMovedRef.current) focusFrameId(current);
+  }, [current, location.key, focusFrameId]);
 
-  // Keyboard focus moves the camera. The viewport is overflow-hidden, so undo any scroll the browser does on focus.
+  // Keyboard focus moves the camera. The viewport clips rather than scrolls; undo any scroll a browser still does.
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -4719,9 +4855,14 @@ export function CanvasRoot({ current, onHelp }: Props) {
       const el = e.target as HTMLElement;
       // A frame itself gets focus after navigation, and the route effect already flies there.
       if (el.matches("[data-frame]") || !el.closest("[data-frame]")) return;
-      const v = viewport.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      if (r.left < v.left || r.right > v.right || r.top < v.top || r.bottom > v.bottom) showElement(el, 500);
+      const cam = camRef.current;
+      const world = worldRef.current;
+      if (!cam || !world) return;
+      // World coordinates, so a browser scroll that happened before focusin can't hide the problem.
+      const box = rectIn(el, world);
+      const [left, top] = toScreen(cam.view, box.x, box.y);
+      const [right, bottom] = toScreen(cam.view, box.x + box.w, box.y + box.h);
+      if (left < 0 || top < 0 || right > cam.vp.w || bottom > cam.vp.h) showElement(el, 500);
     };
     const onScroll = () => {
       viewport.scrollTop = 0;
@@ -4742,8 +4883,9 @@ export function CanvasRoot({ current, onHelp }: Props) {
         const el = document.getElementById(elementId);
         const id = el?.closest<HTMLElement>("[data-frame]")?.dataset.frame as FrameId | undefined;
         if (!el || !id) return;
-        focusedRef.current = id; // stops the route effect from also flying to the frame's top
-        navigateRef.current(frameById(id).path);
+        const path = frameById(id).path;
+        routeHandledRef.current = true; // showElement flies; the route effect must not fly to the frame's top too
+        navigateRef.current(path, { replace: normalizePath(pathRef.current) === path });
         showElement(el);
       },
       fitAll: () => {
@@ -4757,7 +4899,26 @@ export function CanvasRoot({ current, onHelp }: Props) {
         const cam = camRef.current;
         if (!cam) return;
         userMovedRef.current = true;
-        cam.zoomAt(cam.view.z * factor, cam.vp.w / 2, cam.vp.h / 2, true);
+        // From the zoom the camera is heading to, so quick presses don't compound a mid-flight value.
+        cam.zoomAt(cam.target().z * factor, cam.vp.w / 2, cam.vp.h / 2, true);
+      },
+      panBy: (dx, dy) => {
+        const cam = camRef.current;
+        if (!cam) return;
+        userMovedRef.current = true;
+        const v = cam.target();
+        cam.flyTo({ ...v, x: v.x - dx, y: v.y - dy }, 160);
+      },
+      frameEdge: (edge) => {
+        const cam = camRef.current;
+        const r = rectsRef.current;
+        if (!cam || !r) return;
+        const frame = r[currentRef.current];
+        const base = focusFrame(frame, cam.vp);
+        const y = edge === "top" ? base.y : Math.min(base.y, Math.round(cam.vp.h - PAD_TOP - (frame.y + frame.h) * base.z));
+        focusedRef.current = currentRef.current;
+        userMovedRef.current = edge === "bottom";
+        cam.flyTo({ ...base, y }, 500);
       },
       centerOn: (x, y) => {
         const cam = camRef.current;
@@ -4841,7 +5002,16 @@ export function Shell() {
 
   return (
     <>
-      <a className="skip-link" href="#main">
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          const target = frame && document.querySelector<HTMLElement>(`[data-frame="${frame.id}"]`);
+          if (!target) return;
+          e.preventDefault();
+          target.focus();
+        }}
+      >
         Skip to content
       </a>
       <TopBar onHelp={canvas ? openHelp : undefined} />
@@ -4877,6 +5047,7 @@ Task 14 appends the demo cursor and cursor chat styles to this file.
   right: 0;
   bottom: 0;
   overflow: hidden;
+  overflow: clip; /* not a scroll container, so focusing an element can't scroll it before the camera moves */
   outline: none;
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
