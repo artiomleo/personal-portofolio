@@ -21,7 +21,7 @@
   box-sizing: border-box;
   width: 100%;
   padding: 11px 13px;
-  border: 1.5px solid var(--site-line);
+  border: 1.5px solid var(--field-line);
   border-radius: var(--radius);
   background: var(--site-bg);
   color: var(--site-text);
@@ -35,32 +35,25 @@
 }
 .field input:focus,
 .field textarea:focus {
-  outline: none;
+  outline: 2px solid transparent;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .field [aria-invalid="true"] {
-  border-color: #b42318;
+  border-color: var(--danger);
 }
 .field-error {
   margin: 0;
   font-size: 13.5px;
-  color: #b42318;
+  color: var(--danger);
 }
 /* #endregion */
-
-[data-theme="dark"] .field [aria-invalid="true"] {
-  border-color: #ff8a80;
-}
-[data-theme="dark"] .field-error {
-  color: #ff8a80;
-}
 
 .form-error {
   margin: 0;
   padding: 12px 14px;
   border-radius: var(--radius);
-  background: color-mix(in srgb, #b42318 10%, var(--site-bg));
+  background: color-mix(in srgb, var(--danger) 10%, var(--site-bg));
   font-size: 14.5px;
 }
 .form-error a {
@@ -75,9 +68,12 @@
 .form-done p {
   margin: 0;
 }
-.form-done-title {
-  margin-bottom: 6px !important;
+.form-done .form-done-title {
+  margin: 0 0 6px;
   font: 400 30px/1.1 var(--font-display);
+}
+.form-done:focus {
+  outline: none;
 }
 
 .contact-links {

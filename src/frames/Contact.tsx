@@ -1,7 +1,7 @@
 import { Github, Linkedin, Mail, MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 import { profile } from "@/content/profile";
-import { useContactForm } from "./contact/useContactForm";
+import { FORM_ACTION, HONEYPOT, useContactForm } from "./contact/useContactForm";
 import { Frame, FrameTitle } from "./Frame";
 import { NewTabNote } from "./ui";
 
@@ -19,24 +19,24 @@ export function Contact({ primary }: { primary: boolean }) {
       </header>
 
       {form.status === "sent" ? (
-        <div className="form-done" role="status">
+        <div className="form-done" role="status" tabIndex={-1} ref={form.doneRef}>
           <p className="form-done-title">Message sent</p>
           <p>Thanks for writing. I'll reply to the email address you gave.</p>
         </div>
       ) : (
-        <form className="contact-form" noValidate onSubmit={form.submit}>
+        <form className="contact-form" method="post" action={FORM_ACTION} noValidate onSubmit={form.submit}>
           <Field id="contact-name" label="Name" error={form.errors.name}>
-            <input id="contact-name" name="name" type="text" autoComplete="name" value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
+            <input id="contact-name" name="name" type="text" autoComplete="name" required value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
           </Field>
           <Field id="contact-email" label="Email" error={form.errors.email}>
-            <input id="contact-email" name="email" type="email" autoComplete="email" value={form.values.email} onChange={form.onChange} aria-invalid={!!form.errors.email} aria-describedby={describedBy("email")} />
+            <input id="contact-email" name="email" type="email" autoComplete="email" required value={form.values.email} onChange={form.onChange} aria-invalid={!!form.errors.email} aria-describedby={describedBy("email")} />
           </Field>
           <Field id="contact-message" label="Message" error={form.errors.message}>
-            <textarea id="contact-message" name="message" rows={6} ref={form.messageRef} value={form.values.message} onChange={form.onChange} aria-invalid={!!form.errors.message} aria-describedby={describedBy("message")} />
+            <textarea id="contact-message" name="message" rows={6} ref={form.messageRef} required value={form.values.message} onChange={form.onChange} aria-invalid={!!form.errors.message} aria-describedby={describedBy("message")} />
           </Field>
           <div className="hp" aria-hidden="true">
-            <label htmlFor="contact-company">Company</label>
-            <input id="contact-company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+            <label htmlFor="contact-gotcha">Leave this field empty</label>
+            <input id="contact-gotcha" name={HONEYPOT} type="text" tabIndex={-1} autoComplete="off" />
           </div>
           {form.status === "failed" && (
             <p className="form-error" role="alert">

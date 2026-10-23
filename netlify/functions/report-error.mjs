@@ -1,15 +1,21 @@
-// Reports contact-form failures to Slack. Accepts only small JSON posts from the site itself.
-const ALLOWED_ORIGINS = [/^https:\/\/(www\.)?artiomleo\.com$/, /^https:\/\/[a-z0-9-]+(--[a-z0-9-]+)?\.netlify\.app$/];
-const MAX_LENGTH = 4096;
+// Reports contact-form failures to Slack. Accepts only small JSON posts from the site and its own deploy previews.
+const MAX_BYTES = 4096;
 
-export default async (req) => {
+const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const field = (value, max) => (typeof value === "string" ? value.slice(0, max) : "");
+
+export default async (req, context) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
+  const allowed = [/^https:\/\/(www\.)?artiomleo\.com$/];
+  const site = context?.site?.name;
+  if (site) allowed.push(new RegExp(`^https://([a-z0-9-]+--)?${site}\\.netlify\\.app$`));
   const origin = req.headers.get("origin") ?? "";
-  if (!ALLOWED_ORIGINS.some((pattern) => pattern.test(origin))) return new Response("Forbidden", { status: 403 });
+  if (!allowed.some((pattern) => pattern.test(origin))) return new Response("Forbidden", { status: 403 });
 
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BYTES) return new Response("Payload too large", { status: 413 });
   const raw = await req.text();
-  if (raw.length > MAX_LENGTH) return new Response("Payload too large", { status: 413 });
+  if (new TextEncoder().encode(raw).length > MAX_BYTES) return new Response("Payload too large", { status: 413 });
 
   let body;
   try {
@@ -22,17 +28,27 @@ export default async (req) => {
   }
 
   // VITE_SLACK_WEBHOOK_URL is the old name; it works until the variable is renamed in Netlify.
-  const webhookUrl = Netlify.env.get("SLACK_WEBHOOK_URL") ?? Netlify.env.get("VITE_SLACK_WEBHOOK_URL");
+  const webhookUrl = Netlify.env.get("SLACK_WEBHOOK_URL") || Netlify.env.get("VITE_SLACK_WEBHOOK_URL");
   if (!webhookUrl) return new Response("Reporting is not configured", { status: 500 });
 
-  const slackRes = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text: `Form submission error:\n${JSON.stringify({ error: body.error, data: body.data ?? null }, null, 2)}`,
-    }),
-  });
+  const data = body.data && typeof body.data === "object" ? body.data : {};
+  const report = {
+    error: field(body.error, 1000),
+    name: field(data.name, 100),
+    email: field(data.email, 254),
+    message: field(data.message, 1500),
+  };
 
-  if (!slackRes.ok) return new Response("Failed to notify Slack", { status: 500 });
+  try {
+    const slackRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: `Form submission error:\n\`\`\`${escapeSlack(JSON.stringify(report, null, 2))}\`\`\`` }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!slackRes.ok) return new Response("Failed to notify Slack", { status: 502 });
+  } catch {
+    return new Response("Failed to notify Slack", { status: 502 });
+  }
   return new Response("Reported to Slack", { status: 200 });
 };
