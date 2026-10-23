@@ -294,35 +294,7 @@ import type { Config } from "tailwindcss";
 
 // Tailwind supplies only the preflight reset (src/index.css imports tailwindcss/base, not utilities); components use the plain CSS in src/styles.
 export default {
-  darkMode: ["selector", '[data-theme="dark"]'],
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        site: {
-          bg: "var(--site-bg)",
-          text: "var(--site-text)",
-          muted: "var(--site-muted)",
-          line: "var(--site-line)",
-          soft: "var(--site-soft)",
-        },
-        accent: { DEFAULT: "var(--accent)", on: "var(--on-accent)" },
-        tool: {
-          bg: "var(--tool-bg)",
-          ui: "var(--tool-ui)",
-          text: "var(--tool-text)",
-          muted: "var(--tool-muted)",
-          line: "var(--tool-line)",
-        },
-        select: "var(--select)",
-      },
-      fontFamily: {
-        display: "var(--font-display)",
-        ui: "var(--font-ui)",
-        mono: "var(--font-mono)",
-      },
-    },
-  },
 } satisfies Config;
 ```
 
@@ -795,9 +767,9 @@ export function nextFrame(id: FrameId): FrameDef | undefined {
 - [ ] **Step 2: Create `src/canvas/constants.ts`**
 
 ```ts
-// The boot script in index.html repeats these values; keep both in sync.
+// The boot script in index.html repeats CANVAS_QUERY, PAD_X and PAD_TOP; keep them in sync.
+// The panel width comes from --panel-w in src/styles/tokens.css.
 export const CANVAS_QUERY = "(min-width: 1024px) and (pointer: fine)";
-export const PANEL_W = 232;
 export const PAD_X = 48;
 export const PAD_TOP = 56;
 export const FRAME_GAP = 160;
@@ -977,7 +949,7 @@ The GA snippet is the same tag and configuration as before. `<!--app-head-->` an
         try { theme = localStorage.getItem("theme"); view = localStorage.getItem("view"); } catch (e) {}
         var dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         d.setAttribute("data-theme", dark ? "dark" : "light");
-        // Frame widths, panel width and paddings mirror src/frames/registry.ts and src/canvas/constants.ts.
+        // Frame widths, the panel width and paddings mirror src/frames/registry.ts, --panel-w in src/styles/tokens.css and src/canvas/constants.ts.
         var widths = { "/": 960, "/projects": 1040, "/experience": 880, "/about": 880, "/contact": 640 };
         var w = widths[location.pathname.replace(/\/+$/, "") || "/"];
         if (w && view !== "page" && matchMedia("(min-width: 1024px) and (pointer: fine)").matches) {
@@ -1869,7 +1841,7 @@ export function Projects({ primary }: { primary: boolean }) {
         </Heading>
         <div className="side-list">
           {sideProjects.map((p, i) => (
-            <SideProjectCard key={p.slug} project={p} priority={i === 0} />
+            <SideProjectCard key={p.slug} project={p} priority={primary && i === 0} />
           ))}
         </div>
       </section>
@@ -2190,7 +2162,7 @@ export function About({ primary }: { primary: boolean }) {
       <div className="about-intro">
         <picture className="about-portrait">
           <source srcSet={portrait.avif} type="image/avif" />
-          <img src={portrait.webp} alt={portrait.alt} width={portrait.width} height={portrait.height} loading="lazy" decoding="async" />
+          <img src={portrait.webp} alt={portrait.alt} width={portrait.width} height={portrait.height} loading={primary ? "eager" : "lazy"} decoding="async" />
         </picture>
         <div className="about-bio">
           {profile.bio.map((paragraph) => (
@@ -2512,7 +2484,7 @@ git commit -m "feat: add Experience and About frames"
 ### Task 9: Contact frame and the error reporter
 
 **Files:**
-- Create: `src/frames/contact/draft.ts`, `src/frames/contact/useContactForm.ts`, `src/frames/Contact.tsx`, `src/frames/index.ts`, `src/styles/contact.css`
+- Create: `src/frames/contact/draft.ts`, `src/frames/contact/schema.ts`, `src/frames/contact/useContactForm.ts`, `src/frames/Contact.tsx`, `src/frames/index.ts`, `src/styles/contact.css`
 - Replace: `netlify/functions/report-error.mjs`
 - Modify: `src/index.css`
 
@@ -2529,21 +2501,29 @@ export function sendDraft(text: string): void {
 }
 ```
 
-- [ ] **Step 2: Create `src/frames/contact/useContactForm.ts`**
+- [ ] **Step 1b: Create `src/frames/contact/schema.ts`** (loaded on the first submit, so zod stays out of the main bundle)
 
 ```ts
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { flushSync } from "react-dom";
 import { z } from "zod";
-import { DRAFT_EVENT } from "./draft";
 
-const schema = z.object({
+export const contactSchema = z.object({
   name: z.string().trim().min(1, "Enter your name.").max(100, "Use 100 characters or fewer."),
   email: z.string().trim().max(254, "Use 254 characters or fewer.").email("Enter an email address like name@example.com."),
   message: z.string().trim().min(10, "Write at least 10 characters.").max(5000, "Use 5,000 characters or fewer."),
 });
 
-export type ContactValues = z.infer<typeof schema>;
+export type ContactValues = z.infer<typeof contactSchema>;
+```
+
+- [ ] **Step 2: Create `src/frames/contact/useContactForm.ts`**
+
+```ts
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { flushSync } from "react-dom";
+import { DRAFT_EVENT } from "./draft";
+import type { ContactValues } from "./schema";
+
+export type { ContactValues };
 export type ContactField = keyof ContactValues;
 export type ContactStatus = "idle" | "sending" | "sent" | "failed";
 
@@ -2604,7 +2584,9 @@ export function useContactForm() {
       setStatus("sent");
       return;
     }
-    const parsed = schema.safeParse(values);
+    // zod loads on the first submit, keeping it out of the main bundle.
+    const { contactSchema } = await import("./schema");
+    const parsed = contactSchema.safeParse(values);
     if (!parsed.success) {
       const next: Partial<Record<ContactField, string>> = {};
       for (const issue of parsed.error.issues) {
@@ -2899,7 +2881,7 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 
 ```js
 // Reports contact-form failures to Slack. Accepts only small JSON posts from the site and its own deploy previews.
-const MAX_BYTES = 4096;
+const MAX_BYTES = 8192;
 
 const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("`", "'");
 const field = (value, max) => (typeof value === "string" ? value.slice(0, max) : "");
@@ -4039,18 +4021,18 @@ for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
 }
 
 const assets = await readdir(path.join(dist, "assets"));
-// The hero headline uses both the regular and the italic cut; preload both so it renders at its final size early.
-const heroFonts = ["normal", "italic"].map((style) =>
+const preloadTag = (f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`;
+// The hero headline uses both the regular and the italic cut; find both up front so either can be preloaded.
+const [regular, italic] = ["normal", "italic"].map((style) =>
   assets.find((f) => new RegExp(`^instrument-serif-latin-400-${style}-[\\w-]+\\.woff2$`).test(f)),
 );
-if (heroFonts.some((f) => !f)) {
+if (!regular || !italic) {
   if (process.env.CI) throw new Error("prerender: hero font files not found; did a font package rename its files?");
   console.warn("prerender: hero font files not found, skipping the preload");
 }
-const preload = heroFonts
-  .filter(Boolean)
-  .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`)
-  .join("\n    ");
+// The italic cut is used above the fold only by the Home hero and the Projects card taglines; preload it only on
+// those routes, not on every route.
+const ITALIC_ROUTES = new Set(["home", "projects"]);
 
 // Inline the main stylesheet: one less render-blocking request on first load (about 11 KB gzipped).
 const stylesheet = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/);
@@ -4063,6 +4045,7 @@ const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>
 
 for (const route of routes) {
   const { html, head } = render(route.path);
+  const preload = [regular, ITALIC_ROUTES.has(route.id) ? italic : null].filter(Boolean).map(preloadTag).join("\n    ");
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
   const page = inlined.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
   if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
@@ -5942,7 +5925,7 @@ The inspector loads as a lazy chunk the first time Dev Mode is turned on.
 - [ ] **Step 1: Create `src/devmode/layers.ts`**
 
 ```ts
-/** Every element with data-layer="<id>" in the markup. file and css are shown in the inspector header. */
+/** Every element with data-layer="<id>" in the markup. file is shown in the inspector header. */
 export const LAYERS = {
   nav: { name: "Navigation / Frames", file: "src/shell/FramesNav.tsx" },
   "frame-label": { name: "Frame / Label", file: "src/frames/Frame.tsx" },
@@ -7261,9 +7244,9 @@ React 18, Vite 5, react-router 6, plain CSS with design tokens (Tailwind supplie
 
 | Command | What it does |
 | --- | --- |
-| `pnpm dev` | Dev server on http://localhost:8080 (client-rendered) |
-| `pnpm build` | Client build, server build, then `scripts/prerender.mjs` writes one HTML file per route, `404.html`, `sitemap.xml` and `_headers` |
-| `pnpm preview` | Serves `dist/` on http://localhost:3000 with clean URLs and the 404 page |
+| `pnpm dev` | Dev server on http://localhost:8080, or the next free port (client-rendered) |
+| `pnpm build` | Client build, server build, then `scripts/prerender.mjs` writes one HTML file per route (with the main CSS inlined and the hero fonts preloaded), `404.html`, `sitemap.xml` and `_headers` |
+| `pnpm preview` | Serves `dist/` on http://localhost:3000 (or the next free port) with clean URLs and the 404 page |
 | `pnpm typecheck` / `pnpm lint` | TypeScript and ESLint |
 
 ## Where things live
@@ -7273,7 +7256,10 @@ React 18, Vite 5, react-router 6, plain CSS with design tokens (Tailwind supplie
 - `src/canvas/` holds the camera (pure math in `camera.ts`), input, frame layout, minimap, demo cursors and cursor chat.
 - `src/devmode/` holds the inspector, loaded lazily. Code shown in Dev Mode comes from `#region layer:<id>` blocks in the real source files.
 - `src/seo/` holds per-route titles, descriptions, share images and JSON-LD.
-- `index.html` has the boot script that picks canvas or page layout before first paint. Its frame widths and paddings mirror `src/frames/registry.ts` and `src/canvas/constants.ts`.
+- `src/shell/` holds the top bar, frames panel, version history, theme toggle and shortcuts dialog.
+- `src/layout/LayoutProvider.tsx` decides canvas or page layout, theme and reduced motion.
+- `src/styles/` holds the design tokens and per-area CSS.
+- `index.html` has the boot script that picks canvas or page layout before first paint. Its frame widths and paddings mirror `src/frames/registry.ts`, `--panel-w` in `src/styles/tokens.css` and `src/canvas/constants.ts`.
 
 ## Assets
 

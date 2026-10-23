@@ -68,7 +68,7 @@ Everything ships in one pull request from the `redesign/canvas` branch.
    fertility-clinic platform, the job-board builder, the copywriting tool, and Vue, Laravel and
    MySQL apps for clients in the USA, UK and the Netherlands.
 3. **Education:** BEng, Automation and Computer Science, Technical University of Cluj-Napoca,
-   2015 to 2019.
+   2015 to 2019. It is shown in the About frame, and listed in the version history.
 
 The 2018–2019 freelance entry is removed, because the CV starts in 2019.
 
@@ -151,15 +151,15 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 
 ### Canvas layout (desktop)
 
-**Chrome**, all server-rendered except where noted:
+**Chrome**, all server-rendered except the version history, minimap and demo cursors:
 - Top bar: the file name "artiom-leontiev / portfolio" and an avatar stack of the demo cursors, whose
   tooltip reads "Demo cursor". It also has toggles for Dev Mode, Page view and theme, and a primary
   "Contact" button.
 - Left panel with two stacked sections:
   - Frames: the five frames, as the site navigation.
   - Version history: the Experience entries and education as versions; clicking one flies to it.
-- Bottom right: zoom controls (−, percentage, +, Fit) and a minimap that you click to jump. The
-  minimap is client-only.
+- Bottom left: a minimap that you click to jump. Bottom right: zoom controls (−, percentage, +, Fit),
+  with the zoom announced politely to screen readers once it settles.
 - No third-party product names or logos.
 
 **World:**
@@ -171,8 +171,8 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
   keep the text close to 100% zoom on laptop screens.
 - Heights are measured, and the gaps are 160px.
 - Each frame has a label above its top-left corner, like a design-tool frame name.
-- Every frame except Contact has one sticky pinned over its top-right corner. Each frame also has
-  one comment target, which the PM cursor pins a comment on.
+- Home, Projects, Experience and About each have one sticky pinned over the frame's top-right corner,
+  and one comment target that the PM cursor pins a comment on. Contact has neither.
 
 **Camera:**
 - Focusing a frame fits its width into the space between the panels, never zooms above 100%, and
@@ -283,6 +283,9 @@ Dev Mode is switched on. The `data-layer` attributes are always in the markup.
 - Shortcuts:
   - `1`–`5` jump to frames, `0` fits all, `+`/`−` zoom, `D` toggles Dev Mode, `/` opens cursor
     chat, `?` lists the shortcuts, `Esc` exits.
+  - Arrow keys move the canvas, Page Up/Page Down and Space move by a screen, and Home/End go to the
+    top or bottom of the current frame.
+  - Inside the Dev Mode panel, arrow, Page, Home, End and Space keys scroll the panel instead.
   - All are ignored while focus is in an input, textarea or contenteditable element.
 - Focus rings use the selection colour (`#0A74D1` light, `#3D9BFF` dark) at 2px with an offset.
 - Demo cursors, stickies, comment pins and the minimap are `aria-hidden`.
@@ -290,8 +293,9 @@ Dev Mode is switched on. The `data-layer` attributes are always in the markup.
 
 ## Visual tokens
 
-These replace the current Tailwind palette, defined as CSS variables on `:root` and `[data-theme=dark]`
-and exposed to Tailwind.
+These replace the current Tailwind palette, defined as CSS variables on `:root` and `[data-theme=dark]`.
+Tailwind supplies only its preflight reset; no utility classes are generated, so none can clash with the
+site's own class names.
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
@@ -316,7 +320,8 @@ On dark, primary buttons use `#141414` text on `#A08CFF`. Type:
 - **JetBrains Mono** (variable) for code, specs and frame labels.
 
 All fonts are self-hosted through Fontsource, split by `unicode-range` so only the Latin and Latin
-Extended files download for this content, with `font-display: swap`. The hero display face is preloaded.
+Extended files download for this content, with `font-display: swap`. The hero display face is preloaded
+(its italic too, on Home and Projects), and the prerender step inlines the main stylesheet into each page.
 
 ## Architecture
 
@@ -340,13 +345,14 @@ Extended files download for this content, with `font-display: swap`. The hero di
 
 | Path | Responsibility |
 | --- | --- |
-| `src/content/` | Typed content: profile, experience, projects, skills, certifications, education, languages, annotations. The only place copy lives. `ClientProject` has no name, URL or image fields, so client details cannot be added by mistake. |
-| `src/canvas/camera.ts` | Pure camera math: fit a rectangle, interpolate flights, zoom at a point, screen-to-world. |
-| `src/canvas/` | `CanvasRoot`, `World`, `FrameSlot`, `FramesPanel`, `VersionHistory`, `ZoomControls`, `Minimap`, `DemoCursors`, `CursorChat`, `Annotations`. The camera writes transforms straight to the DOM in `requestAnimationFrame`, not through React state. |
-| `src/frames/` | `Home`, `Projects`, `Experience`, `About`, `Contact`, `NotFound`. Each renders in both layouts. |
-| `src/devmode/` | `Layer` attributes helper, `layers.ts` registry, `Inspector`, `CodeView` (lazy chunk). |
+| `src/content/` | Typed content: profile, experience, projects, skills, certifications, education, languages, annotations, version history. The only place copy lives. `ClientProject` has no name, URL or image fields, so client details cannot be added by mistake. |
+| `src/canvas/camera.ts` | Pure camera math: fit a frame or rectangle, interpolate flights, zoom at a point, screen and world conversions. |
+| `src/canvas/` | `CanvasRoot` (layout, camera, route sync, focus-follow, canvas API), `controller.ts`, `input.ts`, `useCanvasShortcuts`, `ZoomControls`, `Minimap`, `DemoCursors` with `timeline.ts`, `CursorChat`. The camera writes transforms straight to the DOM in `requestAnimationFrame`, not through React state. |
+| `src/frames/` | `Frame` (wrapper, label, sticky, heading levels), `Home`, `Projects`, `Experience`, `About`, `Contact` (with `contact/` form logic and a lazily loaded zod schema), `NotFound`. Each renders in both layouts. |
+| `src/shell/` | `Shell`, `TopBar`, `FramesNav`, `VersionHistory`, `ThemeToggle`, `ShortcutsDialog`, `Mark`. |
+| `src/devmode/` | `DevModeProvider` and swatches (always loaded); `layers.ts`, `Inspector`, `CodeView`, measurement, sources and the demo hooks (lazy chunk). |
 | `src/seo/` | `routes.ts` (path, frame, title, description, OG image), head-tag builder, JSON-LD builders, `useRouteMeta` for client-side navigation. |
-| `src/layout/` | Boot script source, layout and theme context, Page view toggle. |
+| `src/layout/` | `LayoutProvider`: mounted, canvas capability, Page view, theme and reduced motion. The boot script lives inline in `index.html`. |
 
 ### Routes
 
@@ -377,7 +383,7 @@ Extended files download for this content, with `font-display: swap`. The hero di
 | `/contact` | Contact · Artiom Leontiev | Get in touch with Artiom Leontiev about frontend architecture, React and Vue work, or AI product engineering. Based in Cluj-Napoca, Romania. |
 
 **OG images:** five static 1200×630 PNGs in `public/og/`. Each shows the name, the frame title and the
-cursor mark, in the site style.
+amber "Artiom" demo cursor, in the site style.
 
 **JSON-LD:**
 - `Person`: name, URL, image (portrait), jobTitle "Senior Frontend Engineer", `knowsAbout`,
@@ -428,6 +434,7 @@ hashes:
   script and the unchanged GA snippet).
 - `connect-src`: `'self'`, Formspree and Google Analytics.
 - `img-src`: `'self'`, `data:` and Google Analytics.
+- `font-src`: `'self'` and `data:` (Vite inlines font subsets under 4 KB).
 - `style-src`: `'self' 'unsafe-inline'`.
 - `frame-ancestors`: `'none'`.
 
