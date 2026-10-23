@@ -370,11 +370,11 @@ Extended files download for this content, with `font-display: swap`. The hero di
 
 | Route | Title | Description |
 | --- | --- | --- |
-| `/` | Artiom Leontiev · Senior Frontend Engineer, AI-powered applications | Senior frontend engineer in Cluj-Napoca building AI-powered web apps with React and Vue: LLM integrations, RAG, agents and MCP servers. |
+| `/` | Artiom Leontiev · Senior Frontend Engineer, AI-powered apps | Senior frontend engineer in Cluj-Napoca building AI-powered web apps with React and Vue: LLM integrations, RAG, agents and MCP servers. |
 | `/projects` | Projects · Artiom Leontiev | Side projects including Klipsy and Council, plus client work in AI tooling, micro-frontends and accessible healthcare platforms. |
 | `/experience` | Experience · Artiom Leontiev | 7+ years at Amdaris and BinarCode: AI products, frontend leadership on micro-frontend platforms, and full-stack Vue and Laravel work. |
 | `/about` | About · Artiom Leontiev | Skills, certifications and background: Vue, React, TypeScript, AI engineering with Claude and OpenAI, accessibility and web performance. |
-| `/contact` | Contact · Artiom Leontiev | Get in touch about frontend or AI product work. |
+| `/contact` | Contact · Artiom Leontiev | Get in touch with Artiom Leontiev about frontend architecture, React and Vue work, or AI product engineering. Based in Cluj-Napoca, Romania. |
 
 **OG images:** five static 1200×630 PNGs in `public/og/`. Each shows the name, the frame title and the
 cursor mark, in the site style.
