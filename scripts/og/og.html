@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Social preview</title>
+    <script type="module">
+      import "@fontsource-variable/onest/wght.css";
+      import "@fontsource/instrument-serif/400.css";
+      import "@fontsource/instrument-serif/400-italic.css";
+      import "@fontsource-variable/jetbrains-mono/wght.css";
+
+      const COPY = {
+        home: ["Home", "Senior Frontend Engineer", "AI-powered applications"],
+        projects: ["Projects", "Things I've built", "Klipsy, Council and client work"],
+        experience: ["Experience", "7+ years, two companies", "Vue, React and AI products"],
+        about: ["About", "Frontend at the core", "AI on top"],
+        contact: ["Contact", "Let's talk", "contact@artiomleo.com"],
+      };
+      const id = new URLSearchParams(location.search).get("frame") ?? "home";
+      const [label, title, sub] = COPY[id] ?? COPY.home;
+      document.querySelector("[data-label]").textContent = label;
+      document.querySelector("[data-title]").textContent = title;
+      document.querySelector("[data-sub]").textContent = sub;
+    </script>
+    <style>
+      html, body { margin: 0; }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #f5f5f5 radial-gradient(#d2d2d2 1.2px, transparent 1.5px) 0 0 / 24px 24px;
+        font-family: "Onest Variable", sans-serif;
+        color: #141414;
+      }
+      .frame {
+        position: absolute;
+        left: 96px;
+        top: 112px;
+        box-sizing: border-box;
+        width: 860px;
+        height: 400px;
+        padding: 56px 64px;
+        background: #fff;
+        box-shadow: 0 0 0 1px #e2e2e2, 0 20px 40px -24px rgb(0 0 0 / 0.25);
+      }
+      .label {
+        position: absolute;
+        left: 0;
+        bottom: 100%;
+        padding-bottom: 10px;
+        font: 500 18px "JetBrains Mono Variable", monospace;
+        color: #6b6b6b;
+      }
+      .kicker {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6a4df5;
+      }
+      h1 { margin: 22px 0 0; font: 400 80px/1 "Instrument Serif", serif; letter-spacing: -0.02em; }
+      .sub { margin: 16px 0 0; font: italic 400 44px/1.1 "Instrument Serif", serif; color: #6a4df5; }
+      .cursor { position: absolute; left: 900px; top: 440px; }
+      .cursor svg { display: block; width: 44px; height: 44px; }
+      .cursor span {
+        position: absolute;
+        left: 34px;
+        top: 40px;
+        padding: 6px 14px;
+        border-radius: 4px 16px 16px 16px;
+        background: #ffaa00;
+        color: #1e1e1e;
+        font-size: 22px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <span class="label"># <span data-label></span></span>
+      <p class="kicker">Artiom Leontiev</p>
+      <h1 data-title></h1>
+      <p class="sub" data-sub></p>
+    </div>
+    <div class="cursor">
+      <svg viewBox="0 0 20 20"><path d="M3 2.5v14.2l3.6-3.4 2.4 5 2.5-1.2-2.4-4.9h5z" fill="#FFAA00" stroke="#fff" stroke-width="1.4" /></svg>
+      <span>Artiom</span>
+    </div>
+  </body>
+</html>
