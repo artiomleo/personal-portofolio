@@ -5426,7 +5426,7 @@ export function DemoCursors({ current, rects, live }: Props) {
       const pinOn = tracks.pin !== null && (!animate || (t >= 4.6 && t < 9.8));
       if (pin) {
         pin.hidden = !pinOn;
-        if (pinOn && tracks.pin) place(pin, v, tracks.pin, -4, -40);
+        if (pinOn && tracks.pin) place(pin, v, tracks.pin, -4, 0);
       }
 
       if (!animate) {
@@ -5447,18 +5447,19 @@ export function DemoCursors({ current, rects, live }: Props) {
       const sel = selectRef.current;
       if (sel) {
         if (t >= 2 && t < 6.8) {
-          const end = t < 3.2 ? d : tracks.select.to;
+          // A marquee while dragging, then the box snaps to the selected title, as in a design tool.
+          const snapped = t >= 3.2;
           const [fx, fy] = tracks.select.from;
-          const w = Math.abs(end[0] - fx);
-          const h = Math.abs(end[1] - fy);
-          place(sel, v, [Math.min(fx, end[0]), Math.min(fy, end[1])]);
+          const x = snapped ? titleBox.x : Math.min(fx, d[0]);
+          const y = snapped ? titleBox.y : Math.min(fy, d[1]);
+          const w = snapped ? titleBox.w : Math.abs(d[0] - fx);
+          const h = snapped ? titleBox.h : Math.abs(d[1] - fy);
+          place(sel, v, [x, y]);
           sel.style.width = `${w * v.z}px`;
           sel.style.height = `${h * v.z}px`;
           sel.hidden = false;
-          if (sizeRef.current) {
-            sizeRef.current.textContent =
-              t < 3.2 ? `${Math.round(w)} × ${Math.round(h)}` : `${Math.round(titleBox.w)} × ${Math.round(titleBox.h)}`;
-          }
+          const label = `${Math.round(w)} × ${Math.round(h)}`;
+          if (sizeRef.current && sizeRef.current.textContent !== label) sizeRef.current.textContent = label;
         } else {
           sel.hidden = true;
         }
@@ -5478,7 +5479,9 @@ export function DemoCursors({ current, rects, live }: Props) {
         const holding = (t >= 1 && t < 3.6) || (t >= 9.4 && t < 11.8);
         const hand = along(tracks.artiom, t);
         const at: Point = holding ? [hand[0] - GRAB[0], hand[1] - GRAB[1]] : t >= 3.6 && t < 9.4 ? tracks.grab.b : tracks.grab.a;
-        stickyEl.style.transform = `translate(${at[0] - tracks.grab.a[0]}px, ${at[1] - tracks.grab.a[1]}px) rotate(${holding ? 3 : -1.5}deg)`;
+        stickyEl.style.translate = `${at[0] - tracks.grab.a[0]}px ${at[1] - tracks.grab.a[1]}px`;
+        // Adds to the note's own CSS tilt while it's held.
+        stickyEl.style.rotate = holding ? "4.5deg" : "";
       }
     };
 
@@ -5505,7 +5508,10 @@ export function DemoCursors({ current, rects, live }: Props) {
       window.removeEventListener("pointerdown", onInput);
       window.removeEventListener("wheel", onInput);
       window.removeEventListener("keydown", onInput);
-      if (stickyEl) stickyEl.style.transform = "";
+      if (stickyEl) {
+        stickyEl.style.translate = "";
+        stickyEl.style.rotate = "";
+      }
     };
   }, [api, current, rects, comment, animate]);
 
@@ -5549,48 +5555,74 @@ const CommentPin = forwardRef<HTMLDivElement, { text: string }>(function Comment
 
 ```tsx
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { sendDraft } from "@/frames/contact/draft";
-import { isTypingTarget } from "@/lib/keys";
+import { normalizePath } from "@/frames/registry";
+import { dialogOpen, isTypingTarget } from "@/lib/keys";
+
+// The bubble's size, used to keep it inside the canvas.
+const BUBBLE_W = 248;
+const BUBBLE_H = 42;
+// The "Guest /" hint appears only once the pointer rests.
+const HINT_DELAY_MS = 800;
 
 /** Press / over the canvas to type a message; Enter takes it to the Contact form. */
 export function CursorChat({ viewportRef }: { viewportRef: RefObject<HTMLElement> }) {
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  /** Where the bubble sits while it's open, fixed when it opens. */
+  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
   const [text, setText] = useState("");
-  const openRef = useRef(open);
-  openRef.current = open;
+  const openRef = useRef(false);
+  openRef.current = at !== null;
   const pointer = useRef({ x: 0, y: 0, inside: false });
+  const returnFocus = useRef<HTMLElement | null>(null);
   const tagRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
+    let hintTimer = 0;
+    const hideTag = () => {
+      window.clearTimeout(hintTimer);
+      if (tagRef.current) tagRef.current.hidden = true;
+    };
     const move = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
       const r = viewport.getBoundingClientRect();
       pointer.current = { x: e.clientX - r.left, y: e.clientY - r.top, inside: true };
-      const tag = tagRef.current;
-      if (tag && !openRef.current) {
+      hideTag();
+      if (openRef.current || (e.target as Element).closest(".zoom, .minimap")) return;
+      hintTimer = window.setTimeout(() => {
+        const tag = tagRef.current;
+        if (!tag || openRef.current || !pointer.current.inside) return;
         tag.style.transform = `translate(${pointer.current.x + 14}px, ${pointer.current.y + 18}px)`;
         tag.hidden = false;
-      }
+      }, HINT_DELAY_MS);
     };
     const leave = () => {
       pointer.current.inside = false;
-      if (tagRef.current) tagRef.current.hidden = true;
+      hideTag();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "/" || !pointer.current.inside || openRef.current) return;
-      if (e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return;
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
       e.preventDefault();
-      setOpen(true);
+      hideTag();
+      returnFocus.current = document.activeElement as HTMLElement | null;
+      // Next to the pointer, kept inside the canvas.
+      const { x, y } = pointer.current;
+      setAt({
+        x: Math.max(8, Math.min(x + 14, viewport.clientWidth - BUBBLE_W)),
+        y: Math.max(8, Math.min(y + 18, viewport.clientHeight - BUBBLE_H)),
+      });
     };
     viewport.addEventListener("pointermove", move);
     viewport.addEventListener("pointerleave", leave);
     window.addEventListener("keydown", onKey);
     return () => {
+      hideTag();
       viewport.removeEventListener("pointermove", move);
       viewport.removeEventListener("pointerleave", leave);
       window.removeEventListener("keydown", onKey);
@@ -5598,35 +5630,35 @@ export function CursorChat({ viewportRef }: { viewportRef: RefObject<HTMLElement
   }, [viewportRef]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus({ preventScroll: true });
-  }, [open]);
+    if (at) inputRef.current?.focus({ preventScroll: true });
+  }, [at]);
 
-  const close = () => {
-    setOpen(false);
+  const close = (restoreFocus: boolean) => {
+    setAt(null);
     setText("");
+    const target = returnFocus.current;
+    returnFocus.current = null;
+    if (!restoreFocus) return;
+    if (target && target.isConnected && target !== document.body) target.focus({ preventScroll: true });
+    else document.getElementById("main")?.focus({ preventScroll: true });
   };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const message = text.trim();
-    close();
+    close(false);
     if (!message) return;
-    navigate("/contact");
+    navigate("/contact", { replace: normalizePath(pathname) === "/contact" });
     window.setTimeout(() => sendDraft(message), 0);
   };
 
   return (
-    <div className={open ? "chat-layer is-open" : "chat-layer"}>
+    <div className={at ? "chat-layer is-open" : "chat-layer"}>
       <div ref={tagRef} className="chat-tag" aria-hidden="true" hidden>
         Guest <kbd>/</kbd>
       </div>
-      {open && (
-        <form
-          className="chat-bubble"
-          style={{ transform: `translate(${pointer.current.x + 14}px, ${pointer.current.y + 18}px)` }}
-          onSubmit={submit}
-          data-nopan
-        >
+      {at && (
+        <form className="chat-bubble" style={{ transform: `translate(${at.x}px, ${at.y}px)` }} onSubmit={submit} data-nopan>
           <label htmlFor="cursor-chat" className="visually-hidden">
             Message for Artiom
           </label>
@@ -5639,9 +5671,12 @@ export function CursorChat({ viewportRef }: { viewportRef: RefObject<HTMLElement
             placeholder="Say hi, then press Enter"
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") close();
+              if (e.key === "Escape") close(true);
             }}
-            onBlur={close}
+            onBlur={() => {
+              // Switching windows also blurs; keep the draft then.
+              if (document.hasFocus()) close(false);
+            }}
           />
         </form>
       )}
@@ -5752,6 +5787,7 @@ with:
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  translate: 0 -100%;
 }
 .demo-pin-dot {
   display: grid;
@@ -5785,6 +5821,9 @@ with:
 [data-devmode] .demo-pin {
   pointer-events: auto;
 }
+[data-devmode] .demo-pin-bubble {
+  animation: none;
+}
 
 /* Cursor chat */
 .chat-layer {
@@ -5812,6 +5851,10 @@ with:
 .chat-layer.is-open .chat-tag {
   display: none;
 }
+.canvas.is-panning .chat-tag,
+[data-devmode] .chat-tag {
+  display: none;
+}
 .chat-tag kbd {
   margin-left: 4px;
   padding: 0 4px;
@@ -5823,7 +5866,7 @@ with:
   pointer-events: auto;
 }
 .chat-bubble:focus-within {
-  box-shadow: 0 0 0 2px var(--select);
+  box-shadow: 0 0 0 2px var(--tool-bg), 0 0 0 4px var(--select);
 }
 .chat-bubble input {
   width: 240px;
