@@ -26,6 +26,7 @@ export function useContactForm() {
   const [focusRequest, setFocusRequest] = useState(0);
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // A cursor-chat draft lands in the message field. Focus waits for the field to exist.
   useEffect(() => {
@@ -47,6 +48,11 @@ export function useContactForm() {
   // Move focus to the confirmation so it's announced and keyboard users aren't dropped on <body>.
   useEffect(() => {
     if (status === "sent") doneRef.current?.focus({ preventScroll: true });
+  }, [status]);
+
+  // Native validation stays on for visitors without JavaScript; with JavaScript the zod messages take over.
+  useEffect(() => {
+    if (formRef.current) formRef.current.noValidate = true;
   }, [status]);
 
   const onChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -93,7 +99,7 @@ export function useContactForm() {
     }
   };
 
-  return { values, errors, status, onChange, submit, messageRef, doneRef };
+  return { values, errors, status, onChange, submit, messageRef, doneRef, formRef };
 }
 
 function reportError(err: unknown, data: ContactValues): void {

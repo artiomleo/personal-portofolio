@@ -1,7 +1,7 @@
 // Reports contact-form failures to Slack. Accepts only small JSON posts from the site and its own deploy previews.
 const MAX_BYTES = 4096;
 
-const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("`", "'");
 const field = (value, max) => (typeof value === "string" ? value.slice(0, max) : "");
 
 export default async (req, context) => {

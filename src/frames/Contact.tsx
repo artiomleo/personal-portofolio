@@ -24,7 +24,7 @@ export function Contact({ primary }: { primary: boolean }) {
           <p>Thanks for writing. I'll reply to the email address you gave.</p>
         </div>
       ) : (
-        <form className="contact-form" method="post" action={FORM_ACTION} noValidate onSubmit={form.submit}>
+        <form className="contact-form" ref={form.formRef} method="post" action={FORM_ACTION} onSubmit={form.submit}>
           <Field id="contact-name" label="Name" error={form.errors.name}>
             <input id="contact-name" name="name" type="text" autoComplete="name" required value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
           </Field>
