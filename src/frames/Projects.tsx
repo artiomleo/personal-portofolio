@@ -20,8 +20,8 @@ export function Projects({ primary }: { primary: boolean }) {
           Side projects
         </Heading>
         <div className="side-list">
-          {sideProjects.map((p) => (
-            <SideProjectCard key={p.slug} project={p} />
+          {sideProjects.map((p, i) => (
+            <SideProjectCard key={p.slug} project={p} priority={i === 0} />
           ))}
         </div>
       </section>
@@ -40,13 +40,21 @@ export function Projects({ primary }: { primary: boolean }) {
 }
 
 // #region layer:project-card
-function SideProjectCard({ project }: { project: SideProject }) {
+function SideProjectCard({ project, priority = false }: { project: SideProject; priority?: boolean }) {
   const { image } = project;
   return (
     <article className="side-card" id={`project-${project.slug}`} data-layer="project-card">
       <picture className="side-shot">
         <source srcSet={image.avif} type="image/avif" />
-        <img src={image.webp} alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+        <img
+          src={image.webp}
+          alt={image.alt}
+          width={image.width}
+          height={image.height}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          {...(priority ? { fetchpriority: "high" } : {})}
+        />
       </picture>
       <div className="side-body">
         <Heading depth={2} className="card-title">

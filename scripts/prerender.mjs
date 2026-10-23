@@ -19,12 +19,24 @@ for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
 }
 
 const assets = await readdir(path.join(dist, "assets"));
-const heroFont = assets.find((f) => /^instrument-serif-latin-400-normal-[\w-]+\.woff2$/.test(f));
-if (!heroFont) {
-  if (process.env.CI) throw new Error("prerender: hero font file not found; did a font package rename its files?");
-  console.warn("prerender: hero font not found, skipping the preload");
+// The hero headline uses both the regular and the italic cut; preload both so it renders at its final size early.
+const heroFonts = ["normal", "italic"].map((style) =>
+  assets.find((f) => new RegExp(`^instrument-serif-latin-400-${style}-[\\w-]+\\.woff2$`).test(f)),
+);
+if (heroFonts.some((f) => !f)) {
+  if (process.env.CI) throw new Error("prerender: hero font files not found; did a font package rename its files?");
+  console.warn("prerender: hero font files not found, skipping the preload");
 }
-const preload = heroFont ? `<link rel="preload" href="/assets/${heroFont}" as="font" type="font/woff2" crossorigin>` : "";
+const preload = heroFonts
+  .filter(Boolean)
+  .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`)
+  .join("\n    ");
+
+// Inline the main stylesheet: one less render-blocking request on first load (about 11 KB gzipped).
+const stylesheet = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/);
+if (!stylesheet) throw new Error("prerender: main stylesheet link not found in dist/index.html");
+const css = await readFile(path.join(dist, stylesheet[1]), "utf8");
+const inlined = template.replace(stylesheet[0], () => `<style>${css}</style>`);
 
 const scriptHashes = new Set();
 const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g;
@@ -32,7 +44,7 @@ const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>
 for (const route of routes) {
   const { html, head } = render(route.path);
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
-  const page = template.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
+  const page = inlined.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
   if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
     throw new Error("prerender: VITE_FORM_ID is not set for the production build");
   }

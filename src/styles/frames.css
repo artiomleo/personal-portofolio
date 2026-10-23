@@ -206,6 +206,7 @@
 
 .frame-next {
   display: inline-flex;
+  align-items: center;
   gap: 6px;
   margin-top: 48px;
   font-weight: 600;

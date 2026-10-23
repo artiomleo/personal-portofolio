@@ -1,4 +1,5 @@
 import { createContext, useContext, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FRAME_NOTES } from "@/content/annotations";
 import { frameById, nextFrame, type FrameId } from "./registry";
@@ -39,7 +40,7 @@ export function Frame({ id, primary, children }: FrameProps) {
       {sticky && <Sticky frame={id} text={sticky} />}
       {next && (
         <Link className="frame-next" to={next.path}>
-          Next: {next.label} <span aria-hidden="true">→</span>
+          Next: {next.label} <ArrowRight size={16} aria-hidden="true" />
         </Link>
       )}
     </section>
