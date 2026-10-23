@@ -4575,6 +4575,8 @@ export function useCanvasShortcuts(api: CanvasApi | null, onHelp: () => void) {
     if (!api) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
+      // Inside the Dev Mode panel, arrow, Page, Home, End and Space keys scroll the panel and its code.
+      if ((e.target as Element).closest?.(".inspector") && /^(Arrow\w+|PageUp|PageDown|Home|End| )$/.test(e.key)) return;
       if (/^[1-5]$/.test(e.key)) {
         e.preventDefault();
         if (e.repeat) return;
@@ -5937,7 +5939,8 @@ export const LAYERS = {
 
 export type LayerId = keyof typeof LAYERS;
 
-export const isLayerId = (value: string | undefined): value is LayerId => value !== undefined && value in LAYERS;
+export const isLayerId = (value: string | undefined): value is LayerId =>
+  value !== undefined && Object.prototype.hasOwnProperty.call(LAYERS, value);
 ```
 
 - [ ] **Step 2: Create `src/devmode/region.ts`**
@@ -5946,7 +5949,8 @@ export const isLayerId = (value: string | undefined): value is LayerId => value 
 /** The lines between "#region layer:<id>" and the next "#endregion", without the markers and dedented. */
 export function region(source: string, id: string): string {
   const lines = source.split("\n");
-  const start = lines.findIndex((line) => line.includes(`#region layer:${id}`));
+  const marker = new RegExp(`#region layer:${id}(?![\\w-])`);
+  const start = lines.findIndex((line) => marker.test(line));
   if (start === -1) return "";
   const end = lines.findIndex((line, i) => i > start && line.includes("#endregion"));
   const body = lines.slice(start + 1, end === -1 ? undefined : end);
@@ -6018,7 +6022,6 @@ export function sourceFor(id: LayerId): { tsx: string; css: string } {
 - [ ] **Step 4: Create `src/devmode/measure.ts`**
 
 ```ts
-// Site tokens come first, so a value shared with a tool token resolves to the site token.
 const TOKENS = [
   "--site-text", "--site-bg", "--site-muted", "--site-line", "--site-soft", "--accent", "--on-accent",
   "--tool-text", "--tool-ui", "--tool-bg", "--tool-muted", "--tool-line", "--select", "--sticky", "--sticky-text",
@@ -6026,6 +6029,13 @@ const TOKENS = [
 ];
 
 export type ColorSpec = { property: "Text" | "Fill" | "Border"; token: string | null; value: string };
+
+// Several tokens can share a hex (white is site-bg and on-accent); pick the one that fits the property.
+const PREFER: Record<ColorSpec["property"], string[]> = {
+  Text: ["--on-accent", "--site-text", "--tool-text", "--sticky-text", "--site-muted", "--tool-muted", "--accent", "--danger"],
+  Fill: ["--site-bg", "--accent", "--site-soft", "--tool-ui", "--tool-bg", "--sticky", "--select"],
+  Border: ["--field-line", "--site-line", "--tool-line", "--accent", "--danger", "--select"],
+};
 
 export type Specs = {
   width: number;
@@ -6047,11 +6057,16 @@ function toHex(rgb: string): string | null {
 export function measure(el: HTMLElement): Specs {
   const cs = getComputedStyle(el);
   const root = getComputedStyle(document.documentElement);
-  const tokenByHex = new Map<string, string>();
+  const tokensByHex = new Map<string, string[]>();
   for (const token of TOKENS) {
     const value = root.getPropertyValue(token).trim().toUpperCase();
-    if (value && !tokenByHex.has(value)) tokenByHex.set(value, token);
+    if (value) tokensByHex.set(value, [...(tokensByHex.get(value) ?? []), token]);
   }
+  const tokenFor = (property: ColorSpec["property"], hex: string) => {
+    const matches = tokensByHex.get(hex);
+    if (!matches) return null;
+    return PREFER[property].find((t) => matches.includes(t)) ?? matches[0];
+  };
   const candidates: Array<[ColorSpec["property"], string]> = [
     ["Text", cs.color],
     ["Fill", cs.backgroundColor],
@@ -6060,7 +6075,7 @@ export function measure(el: HTMLElement): Specs {
   const colors: ColorSpec[] = [];
   for (const [property, value] of candidates) {
     const hex = value ? toHex(value) : null;
-    if (hex) colors.push({ property, token: tokenByHex.get(hex) ?? null, value: hex });
+    if (hex) colors.push({ property, token: tokenFor(property, hex), value: hex });
   }
   const lineHeight = cs.lineHeight === "normal" ? "normal" : String(Math.round(parseFloat(cs.lineHeight)));
   return {
@@ -6176,7 +6191,7 @@ export function useAccentDemo(enabled: boolean, lastActivity: MutableRefObject<n
         applyAccent(next);
         shown = next;
         step++;
-        await sleep(HOLD_MS);
+        for (let waited = 0; waited < HOLD_MS && !stopped && idle(); waited += 100) await sleep(100);
       }
     };
     run();
@@ -6201,7 +6216,6 @@ import { useEffect, type MutableRefObject, type RefObject } from "react";
 
 const IDLE_MS = 4000;
 const EVERY_MS = 3600;
-const PANEL_W = 340;
 
 /** While the visitor is idle, the Designer cursor walks to a visible layer and selects it. */
 export function useAutoSelect(
@@ -6212,19 +6226,18 @@ export function useAutoSelect(
 ) {
   useEffect(() => {
     if (!enabled) return;
+    const idle = () => performance.now() - lastActivity.current >= IDLE_MS;
     let index = 0;
     let pending = 0;
     const timer = window.setInterval(() => {
       const cursor = cursorRef.current;
-      if (performance.now() - lastActivity.current < IDLE_MS) {
-        if (cursor) cursor.hidden = true;
-        return;
-      }
+      if (!idle()) return;
+      // The canvas shrinks beside the inspector, so its box is exactly the visible area.
       const view = document.querySelector(".canvas")?.getBoundingClientRect();
       if (!view) return;
       const visible = [...document.querySelectorAll<HTMLElement>("[data-frame] [data-layer]")].filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.left >= view.left && r.right <= view.right - PANEL_W && r.top >= view.top && r.bottom <= view.bottom;
+        return r.width > 0 && r.left >= view.left && r.right <= view.right && r.top >= view.top && r.bottom <= view.bottom;
       });
       if (!visible.length) return;
       const el = visible[index++ % visible.length];
@@ -6234,10 +6247,17 @@ export function useAutoSelect(
         cursor.style.transform = `translate(${r.left + Math.min(r.width * 0.6, r.width - 12)}px, ${r.top + Math.min(r.height * 0.5, 40)}px)`;
       }
       window.clearTimeout(pending);
-      pending = window.setTimeout(() => select(el), 700);
+      pending = window.setTimeout(() => {
+        if (idle()) select(el);
+      }, 700);
     }, EVERY_MS);
+    // Any activity hides the cursor straight away, not at the next tick.
+    const watcher = window.setInterval(() => {
+      if (!idle() && cursorRef.current) cursorRef.current.hidden = true;
+    }, 250);
     return () => {
       window.clearInterval(timer);
+      window.clearInterval(watcher);
       window.clearTimeout(pending);
     };
   }, [enabled, lastActivity, select, cursorRef]);
@@ -6269,7 +6289,7 @@ export function AccentPanel({ typed, editing }: { typed: string | null; editing:
         )}
       </p>
       <p className="accent-line">
-        <code className="accent-name">--accent</code>:<code className="accent-value">{value}</code>
+        <code className="accent-name">--accent</code>: <code className="accent-value">{value}</code>
         {editing && <span className="accent-caret" aria-hidden="true" />};
       </p>
       <div className="accent-swatches" role="group" aria-label="Try an accent colour">
@@ -6293,11 +6313,12 @@ export function AccentPanel({ typed, editing }: { typed: string | null; editing:
 
 ```tsx
 import { X } from "lucide-react";
-import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useCanvasApi } from "@/canvas/CanvasApi";
 import { CursorIcon } from "@/canvas/CursorIcon";
 import { useLayout } from "@/layout/LayoutProvider";
 import { cx } from "@/lib/cx";
+import { useIsoLayoutEffect } from "@/lib/useIsoLayoutEffect";
 import { AccentPanel } from "./AccentPanel";
 import { CodeView } from "./CodeView";
 import { useDevMode } from "./DevModeProvider";
@@ -6312,22 +6333,24 @@ import "./devmode.css";
 const layerOf = (target: EventTarget | null) =>
   target instanceof Element ? target.closest<HTMLElement>("[data-layer]") : null;
 
-function placeBox(box: HTMLDivElement | null, el: HTMLElement | null) {
+const isInspectable = (el: HTMLElement | null): el is HTMLElement =>
+  el !== null && isLayerId(el.dataset.layer) && !el.closest(".inspector");
+
+function placeBox(box: HTMLDivElement | null, rect: DOMRect | null) {
   if (!box) return;
-  if (!el || !el.isConnected) {
+  if (!rect) {
     box.hidden = true;
     return;
   }
-  const r = el.getBoundingClientRect();
   box.hidden = false;
-  box.style.transform = `translate(${r.left}px, ${r.top}px)`;
-  box.style.width = `${r.width}px`;
-  box.style.height = `${r.height}px`;
+  box.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
+  box.style.width = `${rect.width}px`;
+  box.style.height = `${rect.height}px`;
 }
 
 export default function Inspector() {
-  const { exit } = useDevMode();
-  const { reducedMotion } = useLayout();
+  const { exit, accent } = useDevMode();
+  const { reducedMotion, theme } = useLayout();
   const isCanvas = useCanvasApi() !== null;
   const [hovered, setHovered] = useState<HTMLElement | null>(null);
   const [selected, setSelected] = useState<HTMLElement | null>(null);
@@ -6335,6 +6358,8 @@ export default function Inspector() {
   const hoverBox = useRef<HTMLDivElement>(null);
   const selectBox = useRef<HTMLDivElement>(null);
   const designerRef = useRef<HTMLDivElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
+  const focusInside = useRef(false);
   const lastActivity = useActivityClock();
   const demos = isCanvas && !reducedMotion;
   const accentDemo = useAccentDemo(demos, lastActivity);
@@ -6343,45 +6368,101 @@ export default function Inspector() {
   useEffect(() => {
     const over = (e: PointerEvent) => {
       const el = layerOf(e.target);
-      setHovered(el && isLayerId(el.dataset.layer) && !el.closest(".inspector") ? el : null);
+      setHovered(isInspectable(el) ? el : null);
+    };
+    // Keyboard users select a layer by focusing it.
+    const focus = (e: FocusEvent) => {
+      const el = layerOf(e.target);
+      if (isInspectable(el)) setSelected(el);
     };
     const click = (e: MouseEvent) => {
       const target = e.target as Element;
       if (target.closest(".inspector")) return;
-      const el = layerOf(target);
-      if (!el || !isLayerId(el.dataset.layer)) return;
-      // Inside frames a click inspects instead of following the link; the chrome keeps working.
-      if (el.closest("[data-frame]")) {
+      // Inside frames every click inspects instead of following a link or submitting; the chrome keeps working.
+      if (target.closest("[data-frame]")) {
         e.preventDefault();
         e.stopPropagation();
       }
-      setSelected(el);
+      const el = layerOf(target);
+      if (isInspectable(el)) setSelected(el);
     };
     document.addEventListener("pointerover", over);
+    document.addEventListener("focusin", focus);
     document.addEventListener("click", click, true);
     return () => {
       document.removeEventListener("pointerover", over);
+      document.removeEventListener("focusin", focus);
       document.removeEventListener("click", click, true);
     };
   }, []);
 
-  // Outlines follow their elements every frame, including during camera flights.
+  // Outlines follow their elements every frame, including during camera flights. Idle when nothing is shown.
   useEffect(() => {
+    if (!hovered && !selected) {
+      placeBox(hoverBox.current, null);
+      placeBox(selectBox.current, null);
+      return;
+    }
     let raf = 0;
     const draw = () => {
-      placeBox(hoverBox.current, hovered !== selected ? hovered : null);
-      placeBox(selectBox.current, selected);
+      if (selected && !selected.isConnected) {
+        setSelected(null);
+        return;
+      }
+      const hoverRect = hovered && hovered !== selected && hovered.isConnected ? hovered.getBoundingClientRect() : null;
+      const selectRect = selected ? selected.getBoundingClientRect() : null;
+      placeBox(hoverBox.current, hoverRect);
+      placeBox(selectBox.current, selectRect);
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
   }, [hovered, selected]);
 
+  // The page-layout bottom sheet reserves its height at the end of the page, so nothing stays hidden under it.
+  useIsoLayoutEffect(() => {
+    const aside = asideRef.current;
+    if (!aside) return;
+    const root = document.documentElement;
+    const sync = () => root.style.setProperty("--sheet-h", `${aside.offsetHeight}px`);
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(aside);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--sheet-h");
+    };
+  }, []);
+
+  // Closing from inside the panel would drop focus on <body>; hand it to the Dev Mode toggle instead.
+  useEffect(() => {
+    const aside = asideRef.current;
+    if (!aside) return;
+    const onIn = () => {
+      focusInside.current = true;
+    };
+    const onOut = (e: FocusEvent) => {
+      if (e.relatedTarget) focusInside.current = aside.contains(e.relatedTarget as Node);
+    };
+    aside.addEventListener("focusin", onIn);
+    aside.addEventListener("focusout", onOut);
+    return () => {
+      aside.removeEventListener("focusin", onIn);
+      aside.removeEventListener("focusout", onOut);
+      if (focusInside.current) document.querySelector<HTMLElement>(".topbar .tb-btn[aria-pressed]")?.focus();
+    };
+  }, []);
+
   const layer = selected && isLayerId(selected.dataset.layer) ? selected.dataset.layer : null;
   const info = layer ? LAYERS[layer] : null;
-  const specs = selected?.isConnected ? measure(selected) : null;
-  const code = layer ? sourceFor(layer) : null;
-  const hoveredName = hovered && isLayerId(hovered.dataset.layer) ? LAYERS[hovered.dataset.layer].name : "";
+  const code = useMemo(() => (layer ? sourceFor(layer) : null), [layer]);
+  // Re-measured when the selection, accent or theme changes, including each colour the accent demo applies.
+  const specs = useMemo(
+    () => (selected?.isConnected ? measure(selected) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selected, accent, theme, accentDemo.typed],
+  );
+  const hoveredName = isInspectable(hovered) ? LAYERS[hovered.dataset.layer as keyof typeof LAYERS].name : "";
 
   return (
     <>
@@ -6408,7 +6489,7 @@ export default function Inspector() {
           <span>Designer</span>
         </div>
       )}
-      <aside className={cx("inspector", !info && "inspector--empty")} aria-label="Dev Mode inspector" data-nopan>
+      <aside ref={asideRef} className={cx("inspector", !info && "inspector--empty")} aria-label="Dev Mode inspector" data-nopan>
         <header className="inspector-head">
           <p className="inspector-title">{info ? info.name : "Dev Mode"}</p>
           <p className="inspector-file">{info ? info.file : "Select any element to see its code and measurements."}</p>
@@ -6527,7 +6608,7 @@ export default function Inspector() {
 /* Panel: right side on the canvas, bottom sheet in page layout */
 .inspector {
   position: fixed;
-  z-index: 35;
+  z-index: 42;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -6545,14 +6626,26 @@ export default function Inspector() {
   width: 340px;
   border-left: 1px solid var(--tool-line);
 }
+/* The canvas shrinks beside the panel, so the zoom controls, focus-follow and auto-select all see the real visible area. */
+[data-devmode][data-layout="canvas"] .canvas {
+  right: 340px;
+}
 [data-layout="page"] .inspector {
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 62vh;
+  max-height: 50vh;
+  max-height: 50dvh;
   border-top: 1px solid var(--tool-line);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -12px 32px -16px rgb(0 0 0 / 0.35);
+}
+/* Room at the end of the page and for focused elements, so nothing stays hidden under the bottom sheet. */
+[data-devmode][data-layout="page"] body {
+  padding-bottom: var(--sheet-h, 0px);
+}
+[data-devmode][data-layout="page"] {
+  scroll-padding-bottom: var(--sheet-h, 0px);
 }
 .inspector-head {
   position: relative;
@@ -6654,12 +6747,8 @@ export default function Inspector() {
   fill: #1e1e1e;
 }
 .accent-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
   margin: 0;
-  font: 12.5px var(--font-mono);
+  font: 12.5px/1.6 var(--font-mono);
 }
 .accent-name {
   color: var(--tk-property);
@@ -6671,7 +6760,8 @@ export default function Inspector() {
   display: inline-block;
   width: 2px;
   height: 15px;
-  margin-left: -4px;
+  margin-left: 1px;
+  vertical-align: -3px;
   background: var(--cursor-artiom);
   animation: caret-blink 1s steps(1) infinite;
 }
