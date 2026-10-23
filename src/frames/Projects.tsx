@@ -50,7 +50,7 @@ function SideProjectCard({ project }: { project: SideProject }) {
       </picture>
       <div className="side-body">
         <Heading depth={2} className="card-title">
-          {project.name}
+          {project.name}{" "}
           <span className="card-tagline">{project.tagline}</span>
         </Heading>
         <p className="card-meta">
