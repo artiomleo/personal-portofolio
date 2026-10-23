@@ -34,8 +34,9 @@ Everything ships in one pull request from the `redesign/canvas` branch.
 
 - Name: Artiom Leontiev
 - Title: Senior Frontend Engineer · AI-powered applications
-- Lede: "I build web products in React and Vue, and the AI layer behind them: LLM integrations,
-  RAG, agents and MCP servers. Based in Cluj-Napoca, Romania."
+- Headline (the home `h1`): "Artiom Leontiev builds web products, *and the AI behind them.*"
+- Lede: "7+ years of Vue and React, and since 2025 the AI layer behind them: LLM integrations, RAG,
+  agents and MCP servers. Based in Cluj-Napoca, Romania."
 - Experience length: "7+ years" (the current site says 6+).
 - Hero actions: "See projects" (to `/projects`) and "Get in touch" (to `/contact`).
 
@@ -107,7 +108,7 @@ does not reproduce the real UI.
 | License-management platform | 2019 to 2022 | Vue.js, Tailwind, WebSockets | A suite of apps that helps enterprises cut licensing costs |
 
 Removed from the current site: One More Plate (no live link); the occupational-health, fertility-clinic
-and license-management client links; and the "e-Hospital" title. Also left out: a receipt-scanning
+and license-management client links; and the old fertility-clinic project title. Also left out: a receipt-scanning
 side project, a real-estate tracker with no commits under the owner's name, and any repo with fewer
 than 20 of the owner's commits.
 
@@ -124,7 +125,8 @@ than 20 of the owner's commits.
 
 ### Contact
 
-- The Formspree form, with the existing form ID, and the name, email and message fields.
+- The Formspree form, with the existing form ID, and the name, email and message fields. It posts
+  to Formspree's JSON endpoint with `fetch`, which replaces `@formspree/react`.
 - Links to email (`contact@artiomleo.com`), LinkedIn and GitHub. The `mailto:hello@example.com`
   placeholder is removed.
 
@@ -165,10 +167,12 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
   - Home above Experience
   - Projects, which is tall
   - About above Contact
-- Frame widths are fixed: Home 1200, Projects 1200, Experience 960, About 960, Contact 720.
+- Frame widths are fixed: Home 960, Projects 1040, Experience 880, About 880, Contact 640. These
+  keep the text close to 100% zoom on laptop screens.
 - Heights are measured, and the gaps are 160px.
 - Each frame has a label above its top-left corner, like a design-tool frame name.
-- Stickies and comment pins sit near the frames they refer to. They are client-only.
+- Every frame except Contact has one sticky pinned over its top-right corner. Each frame also has
+  one comment target, which the PM cursor pins a comment on.
 
 **Camera:**
 - Focusing a frame fits its width into the space between the panels, never zooms above 100%, and
@@ -186,12 +190,14 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 - On first load, the camera starts on the route's frame without a flight.
 
 **Demo cursors:**
-- Three scripted cursors loop every 14 seconds:
-  - "Designer" selects the hero headline.
-  - "PM" pins a comment on the first project card.
-  - "Artiom" drags a sticky.
+- Three scripted cursors loop every 14 seconds on the frame the route points at:
+  - "Designer" selects the frame title.
+  - "PM" pins that frame's comment.
+  - "Artiom" drags that frame's sticky.
 - They pause while the visitor is interacting and resume after 6 idle seconds.
-- They also pause when the tab is hidden or the canvas is off screen.
+- They also pause when the tab is hidden.
+- Under reduced motion and while Dev Mode is on, the cursors are hidden and the current frame's
+  comment pin is shown without motion.
 - Cursor colours: `#D92D72`, `#6A4DF5` and `#FFAA00`. The amber cursor uses dark label text.
 
 **Cursor chat:**
@@ -203,7 +209,7 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
   land.
 - After hydration, the other frames, the minimap, the stickies and the cursors mount and the layout is
   measured. The route frame does not move.
-- Frames that are not positioned yet stay hidden until the first layout pass.
+- The layout is measured and the camera placed in a layout effect, before the browser paints.
 
 ### Page layout (phones, tablets, Page view, no JavaScript)
 
@@ -220,7 +226,8 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 **Inspecting layers:**
 - While Dev Mode is on, hovering a registered layer outlines it in the selection colour with a name
   tag. Clicking selects it.
-- Clicks select layers instead of following links. The chrome navigation keeps working.
+- Inside frames, clicks select layers instead of following links. Chrome links and buttons, such as
+  the frames panel and version history, keep working and also select their layer.
 
 **Inspect panel**, on the right in canvas layout and as a bottom sheet in page layout:
 - The layer name, such as "Button / Primary", and its source file path.
@@ -237,7 +244,7 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 - Experience entry, version-history item, contact field, sticky, comment pin
 
 **Accent demo:**
-- Runs when Dev Mode is on and the visitor has been idle for 4 seconds.
+- Runs in canvas layout when Dev Mode is on and the visitor has been idle for 4 seconds.
 - The "Artiom" cursor retypes the `--accent` token through four swatches, then back to violet, and
   the site recolours live.
 - Visitors can apply the same four swatches. Their choice is not saved.
@@ -252,8 +259,8 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 | Orange | #C2410C (5.18:1) | #F5894A (7.51:1) |
 
 **Auto-select:**
-- When the visitor is idle in Dev Mode, the "Designer" cursor selects a new layer every 3.6
-  seconds.
+- In canvas layout, when the visitor is idle in Dev Mode, the "Designer" cursor selects a new
+  layer every 3.6 seconds.
 - The 14-second canvas loop pauses while Dev Mode is on. Only the accent demo and auto-select run.
 
 **Loading:** the inspector, the highlighter and the raw sources load as a lazy chunk the first time
@@ -268,7 +275,9 @@ Dev Mode is switched on. The `data-layer` attributes are always in the markup.
 - Keyboard:
   - A skip link goes to the main content.
   - Landmarks: header (top bar), nav (frames panel or frame bar), main (world), aside (inspector).
-  - Each frame is a `<section aria-labelledby>`. Home holds the only `h1`.
+  - Each frame is a `<section aria-labelledby>`. On the canvas, Home's title is the only `h1`.
+    In page layout, where each URL shows one frame, that frame's title is the `h1`. Headings
+    below it shift to match.
   - In canvas layout, focusing an element outside the visible area moves the camera to it.
 - Shortcuts:
   - `1`–`5` jump to frames, `0` fits all, `+`/`−` zoom, `D` toggles Dev Mode, `/` opens cursor
@@ -305,8 +314,8 @@ On dark, primary buttons use `#141414` text on `#A08CFF`. Type:
 - **Onest** (variable) for body and UI text.
 - **JetBrains Mono** (variable) for code, specs and frame labels.
 
-All fonts are self-hosted through Fontsource, with Latin and Latin Extended subsets and
-`font-display: swap`. The hero display face is preloaded.
+All fonts are self-hosted through Fontsource, split by `unicode-range` so only the Latin and Latin
+Extended files download for this content, with `font-display: swap`. The hero display face is preloaded.
 
 ## Architecture
 
@@ -405,13 +414,15 @@ The mark is a violet canvas cursor. It replaces the green "AL" square.
 
 ## Netlify and security
 
-**`netlify.toml`:**
-- Build command `pnpm build` and publish directory `dist`.
-- Long-lived immutable caching for `/assets/*`, and no caching for HTML.
-- Headers: HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
-  and a `Permissions-Policy` that disables unused features.
+**`netlify.toml`:** build command `pnpm build`, publish directory `dist`, and Node 22.
 
-**Content security policy**, written by the prerender script into `dist/_headers`:
+**Headers**, all written by the prerender script into `dist/_headers`, so that one file holds the CSP
+hashes:
+- HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and a
+  `Permissions-Policy` that disables unused features.
+- Long-lived immutable caching for `/assets/*`. HTML keeps Netlify's default of no caching.
+
+**Content security policy:**
 - `script-src`: `'self'`, Google Tag Manager, and sha256 hashes of the two inline scripts (the boot
   script and the unchanged GA snippet).
 - `connect-src`: `'self'`, Formspree and Google Analytics.
