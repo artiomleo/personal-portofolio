@@ -1,5 +1,6 @@
 // Runs after `vite build` and `vite build --ssr`. For every route it writes HTML with the rendered app and
 // that route's head tags, then writes 404.html, sitemap.xml and _headers (CSP with inline-script hashes).
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -12,9 +13,17 @@ const ssrDir = path.join(root, "dist-ssr");
 const { render, routes, siteUrl } = await import(pathToFileURL(path.join(ssrDir, "entry-server.js")).href);
 const template = await readFile(path.join(dist, "index.html"), "utf8");
 
+// A second run without `vite build` would read an already-prerendered index.html and silently copy Home everywhere.
+for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
+  if (!template.includes(marker)) throw new Error(`prerender: ${marker} is missing from dist/index.html; run the full build`);
+}
+
 const assets = await readdir(path.join(dist, "assets"));
 const heroFont = assets.find((f) => /^instrument-serif-latin-400-normal-[\w-]+\.woff2$/.test(f));
-if (!heroFont) console.warn("prerender: hero font not found, skipping the preload");
+if (!heroFont) {
+  if (process.env.CI) throw new Error("prerender: hero font file not found; did a font package rename its files?");
+  console.warn("prerender: hero font not found, skipping the preload");
+}
 const preload = heroFont ? `<link rel="preload" href="/assets/${heroFont}" as="font" type="font/woff2" crossorigin>` : "";
 
 const scriptHashes = new Set();
@@ -24,6 +33,9 @@ for (const route of routes) {
   const { html, head } = render(route.path);
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
   const page = template.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
+  if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
+    throw new Error("prerender: VITE_FORM_ID is not set for the production build");
+  }
   for (const match of page.matchAll(inlineScript)) {
     scriptHashes.add(`'sha256-${createHash("sha256").update(match[1]).digest("base64")}'`);
   }
@@ -32,10 +44,16 @@ for (const route of routes) {
   console.log(`prerender: ${file}`);
 }
 
-const today = new Date().toISOString().slice(0, 10);
+// lastmod is the date of the latest commit, so it only moves when the site changes.
+let lastmod = new Date().toISOString().slice(0, 10);
+try {
+  lastmod = execSync("git log -1 --format=%cs", { encoding: "utf8" }).trim() || lastmod;
+} catch {
+  // No git history available; keep today's date.
+}
 const urls = routes
   .filter((r) => r.id !== "notFound")
-  .map((r) => `  <url><loc>${siteUrl}${r.path === "/" ? "/" : r.path}</loc><lastmod>${today}</lastmod></url>`)
+  .map((r) => `  <url><loc>${siteUrl}${r.path}</loc><lastmod>${lastmod}</lastmod></url>`)
   .join("\n");
 await writeFile(
   path.join(dist, "sitemap.xml"),
@@ -47,7 +65,7 @@ const csp = [
   `script-src 'self' https://www.googletagmanager.com ${[...scriptHashes].join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
-  "font-src 'self'",
+  "font-src 'self' data:",
   "connect-src 'self' https://formspree.io https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
