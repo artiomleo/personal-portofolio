@@ -21,7 +21,7 @@ export function Projects({ primary }: { primary: boolean }) {
         </Heading>
         <div className="side-list">
           {sideProjects.map((p, i) => (
-            <SideProjectCard key={p.slug} project={p} priority={i === 0} />
+            <SideProjectCard key={p.slug} project={p} priority={primary && i === 0} />
           ))}
         </div>
       </section>

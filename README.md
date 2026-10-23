@@ -11,7 +11,7 @@ React 18, Vite 5, react-router 6, plain CSS with design tokens (Tailwind supplie
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Dev server on http://localhost:8080, or the next free port (client-rendered) |
-| `pnpm build` | Client build, server build, then `scripts/prerender.mjs` writes one HTML file per route, `404.html`, `sitemap.xml` and `_headers` |
+| `pnpm build` | Client build, server build, then `scripts/prerender.mjs` writes one HTML file per route (with the main CSS inlined and the hero fonts preloaded), `404.html`, `sitemap.xml` and `_headers` |
 | `pnpm preview` | Serves `dist/` on http://localhost:3000 (or the next free port) with clean URLs and the 404 page |
 | `pnpm typecheck` / `pnpm lint` | TypeScript and ESLint |
 
@@ -22,7 +22,10 @@ React 18, Vite 5, react-router 6, plain CSS with design tokens (Tailwind supplie
 - `src/canvas/` holds the camera (pure math in `camera.ts`), input, frame layout, minimap, demo cursors and cursor chat.
 - `src/devmode/` holds the inspector, loaded lazily. Code shown in Dev Mode comes from `#region layer:<id>` blocks in the real source files.
 - `src/seo/` holds per-route titles, descriptions, share images and JSON-LD.
-- `index.html` has the boot script that picks canvas or page layout before first paint. Its frame widths and paddings mirror `src/frames/registry.ts` and `src/canvas/constants.ts`.
+- `src/shell/` holds the top bar, frames panel, version history, theme toggle and shortcuts dialog.
+- `src/layout/LayoutProvider.tsx` decides canvas or page layout, theme and reduced motion.
+- `src/styles/` holds the design tokens and per-area CSS.
+- `index.html` has the boot script that picks canvas or page layout before first paint. Its frame widths and paddings mirror `src/frames/registry.ts`, `--panel-w` in `src/styles/tokens.css` and `src/canvas/constants.ts`.
 
 ## Assets
 

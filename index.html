@@ -9,7 +9,7 @@
         try { theme = localStorage.getItem("theme"); view = localStorage.getItem("view"); } catch (e) {}
         var dark = theme ? theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         d.setAttribute("data-theme", dark ? "dark" : "light");
-        // Frame widths, panel width and paddings mirror src/frames/registry.ts and src/canvas/constants.ts.
+        // Frame widths, the panel width and paddings mirror src/frames/registry.ts, --panel-w in src/styles/tokens.css and src/canvas/constants.ts.
         var widths = { "/": 960, "/projects": 1040, "/experience": 880, "/about": 880, "/contact": 640 };
         var w = widths[location.pathname.replace(/\/+$/, "") || "/"];
         if (w && view !== "page" && matchMedia("(min-width: 1024px) and (pointer: fine)").matches) {

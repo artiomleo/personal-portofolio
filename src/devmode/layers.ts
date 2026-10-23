@@ -1,4 +1,4 @@
-/** Every element with data-layer="<id>" in the markup. file and css are shown in the inspector header. */
+/** Every element with data-layer="<id>" in the markup. file is shown in the inspector header. */
 export const LAYERS = {
   nav: { name: "Navigation / Frames", file: "src/shell/FramesNav.tsx" },
   "frame-label": { name: "Frame / Label", file: "src/frames/Frame.tsx" },

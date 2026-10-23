@@ -15,7 +15,7 @@ export function About({ primary }: { primary: boolean }) {
       <div className="about-intro">
         <picture className="about-portrait">
           <source srcSet={portrait.avif} type="image/avif" />
-          <img src={portrait.webp} alt={portrait.alt} width={portrait.width} height={portrait.height} loading="lazy" decoding="async" />
+          <img src={portrait.webp} alt={portrait.alt} width={portrait.width} height={portrait.height} loading={primary ? "eager" : "lazy"} decoding="async" />
         </picture>
         <div className="about-bio">
           {profile.bio.map((paragraph) => (

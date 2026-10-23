@@ -19,18 +19,18 @@ for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
 }
 
 const assets = await readdir(path.join(dist, "assets"));
-// The hero headline uses both the regular and the italic cut; preload both so it renders at its final size early.
-const heroFonts = ["normal", "italic"].map((style) =>
+const preloadTag = (f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`;
+// The hero headline uses both the regular and the italic cut; find both up front so either can be preloaded.
+const [regular, italic] = ["normal", "italic"].map((style) =>
   assets.find((f) => new RegExp(`^instrument-serif-latin-400-${style}-[\\w-]+\\.woff2$`).test(f)),
 );
-if (heroFonts.some((f) => !f)) {
+if (!regular || !italic) {
   if (process.env.CI) throw new Error("prerender: hero font files not found; did a font package rename its files?");
   console.warn("prerender: hero font files not found, skipping the preload");
 }
-const preload = heroFonts
-  .filter(Boolean)
-  .map((f) => `<link rel="preload" href="/assets/${f}" as="font" type="font/woff2" crossorigin>`)
-  .join("\n    ");
+// The italic cut is used above the fold only by the Home hero and the Projects card taglines; preload it only on
+// those routes, not on every route.
+const ITALIC_ROUTES = new Set(["home", "projects"]);
 
 // Inline the main stylesheet: one less render-blocking request on first load (about 11 KB gzipped).
 const stylesheet = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/);
@@ -43,6 +43,7 @@ const inlineScript = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>
 
 for (const route of routes) {
   const { html, head } = render(route.path);
+  const preload = [regular, ITALIC_ROUTES.has(route.id) ? italic : null].filter(Boolean).map(preloadTag).join("\n    ");
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
   const page = inlined.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
   if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
