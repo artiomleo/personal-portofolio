@@ -2098,7 +2098,7 @@ export function Experience({ primary }: { primary: boolean }) {
           Frontend architecture and team leadership on micro-frontend platforms, and since 2025, AI products.
         </p>
       </header>
-      <ol className="roles">
+      <ol className="roles" role="list">
         {roles.map((role) => (
           <RoleEntry key={role.id} role={role} />
         ))}
@@ -2121,7 +2121,7 @@ function RoleEntry({ role }: { role: Role }) {
         <p className="role-years">{role.years}</p>
       </div>
       {role.engagements.length > 0 && (
-        <ol className="engagements">
+        <ol className="engagements" role="list">
           {role.engagements.map((e) => (
             <li key={e.id} className="engagement" id={`entry-${e.id}`}>
               <Heading depth={2} className="engagement-title">
@@ -2201,7 +2201,7 @@ export function About({ primary }: { primary: boolean }) {
         <Heading depth={1} id="certifications-title" className="block-title">
           Certifications
         </Heading>
-        <ul className="certs">
+        <ul className="certs" role="list">
           {certifications.map((c) => (
             <li key={c.issuer}>
               <p className="cert-issuer">
@@ -2233,7 +2233,7 @@ export function About({ primary }: { primary: boolean }) {
           <Heading depth={1} id="languages-title" className="block-title">
             Languages
           </Heading>
-          <ul className="languages">
+          <ul className="languages" role="list">
             {languages.map((l) => (
               <li key={l.name}>
                 <span>{l.name}</span> <span>{l.level}</span>
@@ -2660,7 +2660,7 @@ export function Contact({ primary }: { primary: boolean }) {
         </form>
       )}
 
-      <ul className="contact-links">
+      <ul className="contact-links" role="list">
         <li>
           <Mail size={16} aria-hidden="true" />
           <a href={`mailto:${profile.email}`}>{profile.email}</a>
