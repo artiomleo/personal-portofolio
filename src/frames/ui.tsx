@@ -14,7 +14,7 @@ export function PrimaryButton({ to, children }: { to: string; children: ReactNod
 // #region layer:stack-tag
 export function StackTags({ items, label }: { items: string[]; label: string }) {
   return (
-    <ul className="tags" aria-label={label}>
+    <ul className="tags" aria-label={label} role="list">
       {items.map((item) => (
         <li key={item} className="tag" data-layer="stack-tag">
           {item}

@@ -4,7 +4,13 @@ import { FRAME_NOTES } from "@/content/annotations";
 import { frameById, nextFrame, type FrameId } from "./registry";
 
 type FrameContextValue = { id: FrameId; primary: boolean };
-const FrameContext = createContext<FrameContextValue>({ id: "home", primary: true });
+const FrameContext = createContext<FrameContextValue | null>(null);
+
+function useFrame(): FrameContextValue {
+  const value = useContext(FrameContext);
+  if (!value) throw new Error("FrameTitle and Heading must render inside <Frame>");
+  return value;
+}
 
 type FrameProps = {
   id: FrameId;
@@ -13,6 +19,7 @@ type FrameProps = {
   children: ReactNode;
 };
 
+/** A frame section. Its children must render exactly one FrameTitle, which labels the section. */
 export function Frame({ id, primary, children }: FrameProps) {
   const def = frameById(id);
   const next = nextFrame(id);
@@ -39,7 +46,7 @@ export function Frame({ id, primary, children }: FrameProps) {
 }
 
 // #region layer:frame-label
-function FrameLabel({ label }: { label: string }) {
+export function FrameLabel({ label }: { label: string }) {
   return (
     <p className="frame-label" aria-hidden="true" data-layer="frame-label">
       <span className="frame-label-mark">#</span> {label}
@@ -58,7 +65,7 @@ export function FrameTitle({
   className?: string;
   layer?: string;
 }) {
-  const { id, primary } = useContext(FrameContext);
+  const { id, primary } = useFrame();
   const Tag = primary ? "h1" : "h2";
   return (
     <Tag id={`${id}-title`} className={className} data-layer={layer}>
@@ -70,7 +77,7 @@ export function FrameTitle({
 
 /** A heading one (depth 1) or two (depth 2) levels below the frame title. */
 export function Heading({ depth, ...props }: { depth: 1 | 2 } & HTMLAttributes<HTMLHeadingElement>) {
-  const { primary } = useContext(FrameContext);
+  const { primary } = useFrame();
   const level = (primary ? 1 : 2) + depth;
   const Tag = level === 2 ? "h2" : level === 3 ? "h3" : "h4";
   return <Tag {...props} />;

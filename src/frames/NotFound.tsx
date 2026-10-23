@@ -1,13 +1,12 @@
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { FrameLabel } from "./Frame";
 import { FRAMES } from "./registry";
 
 export function NotFound() {
   return (
-    <section className="frame frame--404" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
-      <p className="frame-label" aria-hidden="true">
-        <span className="frame-label-mark">#</span> 404
-      </p>
+    <section className="frame" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
+      <FrameLabel label="404" />
       <div className="frame-body">
         <header className="frame-head">
           <p className="eyebrow">404</p>
@@ -16,7 +15,7 @@ export function NotFound() {
           </h1>
           <p className="frame-lede">There's no frame at this address. Pick one of these instead:</p>
         </header>
-        <ul className="not-found-links">
+        <ul className="not-found-links" role="list">
           {FRAMES.map((f) => (
             <li key={f.id}>
               <Link to={f.path}>{f.label}</Link>

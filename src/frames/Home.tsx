@@ -22,7 +22,7 @@ export function Home({ primary }: { primary: boolean }) {
           <Heading depth={1} className="hero-now-title">
             Currently
           </Heading>
-          <ul>
+          <ul role="list">
             {profile.currently.map((item) => (
               <li key={item}>{item}</li>
             ))}
