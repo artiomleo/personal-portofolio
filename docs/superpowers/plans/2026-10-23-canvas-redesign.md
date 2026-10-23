@@ -2545,6 +2545,7 @@ export function useContactForm() {
   const [focusRequest, setFocusRequest] = useState(0);
   const messageRef = useRef<HTMLTextAreaElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // A cursor-chat draft lands in the message field. Focus waits for the field to exist.
   useEffect(() => {
@@ -2566,6 +2567,11 @@ export function useContactForm() {
   // Move focus to the confirmation so it's announced and keyboard users aren't dropped on <body>.
   useEffect(() => {
     if (status === "sent") doneRef.current?.focus({ preventScroll: true });
+  }, [status]);
+
+  // Native validation stays on for visitors without JavaScript; with JavaScript the zod messages take over.
+  useEffect(() => {
+    if (formRef.current) formRef.current.noValidate = true;
   }, [status]);
 
   const onChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -2612,7 +2618,7 @@ export function useContactForm() {
     }
   };
 
-  return { values, errors, status, onChange, submit, messageRef, doneRef };
+  return { values, errors, status, onChange, submit, messageRef, doneRef, formRef };
 }
 
 function reportError(err: unknown, data: ContactValues): void {
@@ -2658,7 +2664,7 @@ export function Contact({ primary }: { primary: boolean }) {
           <p>Thanks for writing. I'll reply to the email address you gave.</p>
         </div>
       ) : (
-        <form className="contact-form" method="post" action={FORM_ACTION} noValidate onSubmit={form.submit}>
+        <form className="contact-form" ref={form.formRef} method="post" action={FORM_ACTION} onSubmit={form.submit}>
           <Field id="contact-name" label="Name" error={form.errors.name}>
             <input id="contact-name" name="name" type="text" autoComplete="name" required value={form.values.name} onChange={form.onChange} aria-invalid={!!form.errors.name} aria-describedby={describedBy("name")} />
           </Field>
@@ -2881,7 +2887,7 @@ export const FRAME_COMPONENTS: Record<FrameId, ComponentType<{ primary: boolean 
 // Reports contact-form failures to Slack. Accepts only small JSON posts from the site and its own deploy previews.
 const MAX_BYTES = 4096;
 
-const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const escapeSlack = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("`", "'");
 const field = (value, max) => (typeof value === "string" ? value.slice(0, max) : "");
 
 export default async (req, context) => {
