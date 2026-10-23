@@ -1024,7 +1024,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   server: {
     host: "::",
     port: 8080,
@@ -1035,10 +1035,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // The server build only feeds the prerender script; public/ is copied once by the client build.
+    copyPublicDir: !isSsrBuild,
+  },
   ssr: {
     noExternal: ["lucide-react"],
   },
-});
+}));
 ```
 
 - [ ] **Step 8: Verify**
@@ -1288,6 +1292,7 @@ export function Frame({ id, primary, children }: FrameProps) {
       className="frame"
       data-frame={id}
       aria-labelledby={`${id}-title`}
+      tabIndex={-1}
       style={{ "--frame-w": `${def.width}px` } as CSSProperties}
     >
       <FrameLabel label={def.label} />
@@ -1457,7 +1462,7 @@ import { FRAMES } from "./registry";
 
 export function NotFound() {
   return (
-    <section className="frame" aria-labelledby="not-found-title" style={{ "--frame-w": "640px" } as CSSProperties}>
+    <section className="frame" aria-labelledby="not-found-title" tabIndex={-1} style={{ "--frame-w": "640px" } as CSSProperties}>
       <FrameLabel label="404" />
       <div className="frame-body">
         <header className="frame-head">
@@ -3255,6 +3260,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target) || dialogOpen()) return;
       if (e.key === "d" || e.key === "D") {
+        if (e.repeat) return;
         e.preventDefault();
         setOn((v) => !v);
       } else if (e.key === "Escape") {
@@ -3381,7 +3387,10 @@ export function FramesNav({ current }: { current?: FrameId }) {
               to={f.path}
               className="frames-link"
               aria-current={current === f.id ? "page" : undefined}
-              onClick={() => canvas?.focusFrame(f.id)}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                canvas?.focusFrame(f.id);
+              }}
             >
               <span className="frames-link-mark" aria-hidden="true">#</span>
               <span>{f.label}</span>
@@ -3475,7 +3484,7 @@ export function Shell() {
   const { pathname } = useLocation();
   const frame = frameForPath(pathname);
   const { mounted } = useLayout();
-  const firstRender = useRef(true);
+  const lastPath = useRef(pathname);
 
   useRouteMeta(frame?.id ?? "notFound");
 
@@ -3484,14 +3493,17 @@ export function Shell() {
     if (mounted) document.documentElement.dataset.layout = "page";
   }, [mounted]);
 
+  // On a real route change (not the first render, and not StrictMode's re-run), start at the top and move
+  // focus to the frame now showing, so keyboard and screen-reader users continue from there.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
     window.scrollTo(0, 0);
-    document.getElementById("main")?.focus({ preventScroll: true });
-  }, [pathname]);
+    const target = frame
+      ? document.querySelector<HTMLElement>(`[data-frame="${frame.id}"]`)
+      : document.querySelector<HTMLElement>("#main section");
+    target?.focus({ preventScroll: true });
+  }, [pathname, frame]);
 
   return (
     <>
@@ -3616,6 +3628,7 @@ else createRoot(root).render(app);
   margin-left: auto;
 }
 .avatar {
+  position: relative;
   display: grid;
   place-items: center;
   width: 26px;
@@ -3632,6 +3645,9 @@ else createRoot(root).render(app);
 .avatar:first-child {
   margin-left: 0;
 }
+.avatar:nth-child(1) { z-index: 3; }
+.avatar:nth-child(2) { z-index: 2; }
+.avatar:nth-child(3) { z-index: 1; }
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -3829,6 +3845,9 @@ else createRoot(root).render(app);
   .topbar-file-sub {
     display: none;
   }
+  .frames-link-mark {
+    display: none;
+  }
   .tb-btn .tb-btn-text {
     position: absolute;
     width: 1px;
@@ -3847,6 +3866,10 @@ else createRoot(root).render(app);
 
 ```css
 /* Page layout: phones, tablets, Page view, no JavaScript. */
+/* Keep focused elements and skip-link targets clear of the sticky top bar and frame bar. */
+[data-layout="page"] {
+  scroll-padding-top: calc(var(--bar-h) + 56px);
+}
 [data-layout="page"] body {
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
@@ -3885,11 +3908,17 @@ else createRoot(root).render(app);
   right: 0;
   bottom: 0;
   padding: 0;
-  overflow: hidden;
+  /* If JavaScript never loads, the frame can still be scrolled. The scrollbar stays hidden so the frame doesn't shift. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   background-color: var(--tool-bg);
   background-image: radial-gradient(var(--tool-dot) 1px, transparent 1.3px);
   background-size: calc(20px * var(--boot-z, 1)) calc(20px * var(--boot-z, 1));
   background-position: var(--boot-x, 0px) 56px;
+}
+[data-layout="canvas"] .page-main::-webkit-scrollbar {
+  display: none;
 }
 [data-layout="canvas"] .page-main > .frame {
   position: absolute;
@@ -3983,6 +4012,7 @@ export function render(url: string): { html: string; head: string } {
 ```js
 // Runs after `vite build` and `vite build --ssr`. For every route it writes HTML with the rendered app and
 // that route's head tags, then writes 404.html, sitemap.xml and _headers (CSP with inline-script hashes).
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -3995,9 +4025,17 @@ const ssrDir = path.join(root, "dist-ssr");
 const { render, routes, siteUrl } = await import(pathToFileURL(path.join(ssrDir, "entry-server.js")).href);
 const template = await readFile(path.join(dist, "index.html"), "utf8");
 
+// A second run without `vite build` would read an already-prerendered index.html and silently copy Home everywhere.
+for (const marker of ["<!--app-head-->", "<!--app-html-->"]) {
+  if (!template.includes(marker)) throw new Error(`prerender: ${marker} is missing from dist/index.html; run the full build`);
+}
+
 const assets = await readdir(path.join(dist, "assets"));
 const heroFont = assets.find((f) => /^instrument-serif-latin-400-normal-[\w-]+\.woff2$/.test(f));
-if (!heroFont) console.warn("prerender: hero font not found, skipping the preload");
+if (!heroFont) {
+  if (process.env.CI) throw new Error("prerender: hero font file not found; did a font package rename its files?");
+  console.warn("prerender: hero font not found, skipping the preload");
+}
 const preload = heroFont ? `<link rel="preload" href="/assets/${heroFont}" as="font" type="font/woff2" crossorigin>` : "";
 
 const scriptHashes = new Set();
@@ -4007,6 +4045,9 @@ for (const route of routes) {
   const { html, head } = render(route.path);
   // Replacer functions, so a "$" in the content is never read as a replacement pattern.
   const page = template.replace("<!--app-head-->", () => `${preload}\n    ${head}`).replace("<!--app-html-->", () => html);
+  if (process.env.CONTEXT === "production" && page.includes("formspree.io/f/undefined")) {
+    throw new Error("prerender: VITE_FORM_ID is not set for the production build");
+  }
   for (const match of page.matchAll(inlineScript)) {
     scriptHashes.add(`'sha256-${createHash("sha256").update(match[1]).digest("base64")}'`);
   }
@@ -4015,10 +4056,16 @@ for (const route of routes) {
   console.log(`prerender: ${file}`);
 }
 
-const today = new Date().toISOString().slice(0, 10);
+// lastmod is the date of the latest commit, so it only moves when the site changes.
+let lastmod = new Date().toISOString().slice(0, 10);
+try {
+  lastmod = execSync("git log -1 --format=%cs", { encoding: "utf8" }).trim() || lastmod;
+} catch {
+  // No git history available; keep today's date.
+}
 const urls = routes
   .filter((r) => r.id !== "notFound")
-  .map((r) => `  <url><loc>${siteUrl}${r.path === "/" ? "/" : r.path}</loc><lastmod>${today}</lastmod></url>`)
+  .map((r) => `  <url><loc>${siteUrl}${r.path}</loc><lastmod>${lastmod}</lastmod></url>`)
   .join("\n");
 await writeFile(
   path.join(dist, "sitemap.xml"),
@@ -4030,7 +4077,7 @@ const csp = [
   `script-src 'self' https://www.googletagmanager.com ${[...scriptHashes].join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
-  "font-src 'self'",
+  "font-src 'self' data:",
   "connect-src 'self' https://formspree.io https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -4676,7 +4723,8 @@ export function CanvasRoot({ current, onHelp }: Props) {
     if (!viewport) return;
     const onFocus = (e: FocusEvent) => {
       const el = e.target as HTMLElement;
-      if (!el.closest("[data-frame]")) return;
+      // A frame itself gets focus after navigation, and the route effect already flies there.
+      if (el.matches("[data-frame]") || !el.closest("[data-frame]")) return;
       const v = viewport.getBoundingClientRect();
       const r = el.getBoundingClientRect();
       if (r.left < v.left || r.right > v.right || r.top < v.top || r.bottom > v.bottom) showElement(el, 500);
@@ -4774,7 +4822,9 @@ export function Shell() {
   const canvas = mounted && canCanvas && !pageView && frame !== undefined;
   const help = useRef<ShortcutsHandle>(null);
   const openHelp = useCallback(() => help.current?.open(), []);
-  const firstRender = useRef(true);
+  const lastPath = useRef(pathname);
+  const canvasRef = useRef(canvas);
+  canvasRef.current = canvas;
 
   useRouteMeta(frame?.id ?? "notFound");
 
@@ -4783,14 +4833,17 @@ export function Shell() {
     if (mounted && !canvas) document.documentElement.dataset.layout = "page";
   }, [mounted, canvas]);
 
+  // On a real route change (not the first render, not StrictMode's re-run, not a layout switch), move focus to
+  // the frame now showing. Page layout also starts at the top; the canvas flies there instead.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    if (!canvas) window.scrollTo(0, 0);
-    document.getElementById("main")?.focus({ preventScroll: true });
-  }, [pathname, canvas]);
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    if (!canvasRef.current) window.scrollTo(0, 0);
+    const target = frame
+      ? document.querySelector<HTMLElement>(`[data-frame="${frame.id}"]`)
+      : document.querySelector<HTMLElement>("#main section");
+    target?.focus({ preventScroll: true });
+  }, [pathname, frame]);
 
   return (
     <>

@@ -155,7 +155,7 @@ The same script sets `data-theme="light|dark"`: the stored choice first, then th
 - Top bar: the file name "artiom-leontiev / portfolio" and an avatar stack of the demo cursors, whose
   tooltip reads "Demo cursor". It also has toggles for Dev Mode, Page view and theme, and a primary
   "Contact" button.
-- Left panel with two tabs:
+- Left panel with two stacked sections:
   - Frames: the five frames, as the site navigation.
   - Version history: the Experience entries and education as versions; clicking one flies to it.
 - Bottom right: zoom controls (−, percentage, +, Fit) and a minimap that you click to jump. The
