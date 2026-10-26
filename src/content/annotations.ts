@@ -6,11 +6,11 @@ export type FrameNote = { sticky?: string; comment?: { target: string; text: str
 export const FRAME_NOTES: Record<FrameId, FrameNote> = {
   home: {
     sticky: "Case studies: days of writing, down to minutes",
-    comment: { target: "hero-lede", text: "Since 2025: RAG, agents and MCP servers in production" },
+    comment: { target: "hero-lede", text: "RAG, agents and MCP servers, shipped since 2025" },
   },
   projects: {
     sticky: "Council ships in 8 languages",
-    comment: { target: "project-klipsy", text: "Per-model cost tracking fixed a 37× overstatement" },
+    comment: { target: "project-klipsy", text: "Cost tracking found cheap-model costs overstated 37×" },
   },
   experience: {
     sticky: "Mentored 4 developers",

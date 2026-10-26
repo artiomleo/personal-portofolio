@@ -422,11 +422,11 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/artiomleo/",
   cvUrl: "https://drive.google.com/file/d/1c296pwoO0QAl2fmsOOMBiI6i6DjtpRws/view?usp=sharing",
   headline: { lead: "builds web products,", accent: "and the AI behind them." },
-  lede: "7+ years of Vue and React, and since 2025 the AI layer behind them: LLM integrations, RAG, agents and MCP servers. Based in Cluj-Napoca, Romania.",
-  currently: ["AI products and internal AI tooling at Amdaris", "Building Klipsy on the side"],
+  lede: "I've built web apps in Vue and React for 7+ years. Since 2025 most of my work has been AI products: LLM features, RAG search, agents, and MCP servers for Claude and ChatGPT. Based in Cluj-Napoca, Romania.",
+  currently: ["Building AI products and internal tools at Amdaris", "Building Klipsy, an AI social media app, on the side"],
   bio: [
-    "I'm a senior frontend engineer with 7+ years of building web products in Vue and React. Since 2025 I've focused on AI-powered applications: LLM integrations, RAG, AI agents, and MCP servers for Claude and ChatGPT.",
-    "I lead frontend architecture, including micro-frontends, design systems and accessibility, and I work AI-first every day with Claude Code and agent workflows. Frontend is my core, and I build the AI and API layers a product needs, with working knowledge of backend frameworks.",
+    "I'm a senior frontend engineer in Cluj-Napoca. I started as a full-stack developer at BinarCode, building Vue and Laravel apps for clients, then moved to Amdaris, where I've led frontend teams on large healthcare and compliance platforms.",
+    "Since 2025 I've mostly built AI products: a case-study generator, an MCP server for coding agents, and, in my own time, Klipsy and Council. I use Claude Code every day, and I'm comfortable working in the backend when a feature needs it.",
   ],
   portrait: {
     avif: "/images/portrait.avif",
@@ -456,10 +456,10 @@ export const roles: Role[] = [
         title: "AI products and internal AI tooling",
         years: "2025 – present",
         points: [
-          "Took an AI case-study generator to production, cutting case studies from days of manual writing to minutes. Used by Sales and Marketing. Built the React app and co-built the RAG service (Azure OpenAI).",
+          "Took an AI case-study generator to production. Sales and Marketing now get a case study in minutes instead of days. Built the React app and co-built the RAG service (Azure OpenAI).",
           "Built and self-hosted an MCP server that gives Claude Code and GitHub Copilot access to the company's agent-skill library. Load-tested it to 100 concurrent users at about 70 ms median latency.",
           "Wrote reusable Claude Code and Copilot agent skills for engineering teams, including a code-review skill that has to cite evidence for every finding.",
-          "Built the pull-request review for an AI-assisted project-delivery platform (changed files, side-by-side diffs, comment threads, approvals) and hardened its flow for accepting AI-drafted changes (React, TypeScript).",
+          "Built the pull-request review screens for an AI-assisted project-delivery platform: changed files, side-by-side diffs, comment threads and approvals (React, TypeScript).",
         ],
       },
       {
@@ -468,7 +468,7 @@ export const roles: Role[] = [
         years: "2025 – 2026",
         points: [
           "Designed a React 19 micro-frontend architecture (Module Federation) with a shared design system, role-based access and a typed API client, and built the core compliance workflows.",
-          "Introduced AI-assisted delivery to the team: Claude Code custom commands for end-to-end testing and code review, plus an agent-driven story and QA workflow (BMAD).",
+          "Got the team using AI day to day: Claude Code commands for end-to-end tests and code review, and an agent workflow (BMAD) for writing stories and QA.",
         ],
       },
       {
@@ -476,7 +476,7 @@ export const roles: Role[] = [
         title: "Frontend lead, occupational-health platform",
         years: "2023 – 2025",
         points: [
-          "Designed a Vue 3 + Vite micro-frontend architecture from the ground up, with a configurable dynamic-form engine. The platform passed a WCAG 2.1 AA accessibility audit.",
+          "Designed the Vue 3 and Vite micro-frontend architecture, including an engine that builds forms from configuration. The platform passed a WCAG 2.1 AA accessibility audit.",
           "Managed and mentored 4 developers, and ran code reviews, internal trainings and hiring interviews.",
         ],
       },
@@ -492,9 +492,9 @@ export const roles: Role[] = [
     engagements: [],
     points: [
       "Rebuilt a fertility-clinic platform's client app in Vue 3 and automated its kit-processing and shipping workflows, cutting manual paperwork by 50% and improving client retention by 20%.",
-      "Built a multi-site Nuxt job-board builder with per-site DNS mapping, whose server-side rendering and SEO work raised the SEO score by 30%.",
-      "Led a 2-developer team building a copywriting tool that generated articles through content-generation APIs, with Stripe payments.",
-      "Delivered web applications (Vue.js, Laravel, MySQL) for corporate clients in the USA, UK and the Netherlands.",
+      "Built a Nuxt job-board builder that runs many sites, each on its own domain. Server-side rendering and SEO work raised its SEO score by 30%.",
+      "Led a team of 2 building a tool that writes articles automatically, with paid plans through Stripe.",
+      "Built web apps in Vue.js, Laravel and MySQL for companies in the USA, the UK and the Netherlands.",
     ],
   },
 ];
@@ -562,7 +562,7 @@ export const sideProjects: SideProject[] = [
     tagline: "AI social content studio",
     years: "2026 – present",
     role: "Lead full-stack engineer",
-    summary: "Klipsy turns a brand's documents into a steady stream of social content: it writes text posts, designs image posts and makes faceless videos, then publishes them on a schedule.",
+    summary: "Klipsy makes social media content from a brand's documents: text posts, image posts and faceless videos, published on a schedule.",
     points: [
       "Creates posts for each platform in the brand's own voice.",
       "Schedules and publishes to TikTok, YouTube, Instagram, X and more from one calendar.",
@@ -790,11 +790,11 @@ export type FrameNote = { sticky?: string; comment?: { target: string; text: str
 export const FRAME_NOTES: Record<FrameId, FrameNote> = {
   home: {
     sticky: "Case studies: days of writing, down to minutes",
-    comment: { target: "hero-lede", text: "Since 2025: RAG, agents and MCP servers in production" },
+    comment: { target: "hero-lede", text: "RAG, agents and MCP servers, shipped since 2025" },
   },
   projects: {
     sticky: "Council ships in 8 languages",
-    comment: { target: "project-klipsy", text: "Per-model cost tracking fixed a 37× overstatement" },
+    comment: { target: "project-klipsy", text: "Cost tracking found cheap-model costs overstated 37×" },
   },
   experience: {
     sticky: "Mentored 4 developers",
@@ -1834,7 +1834,7 @@ export function Projects({ primary }: { primary: boolean }) {
         <p className="eyebrow">Projects</p>
         <FrameTitle>Things I've built</FrameTitle>
         <p className="frame-lede">
-          Side projects I own end to end, and client work I led or built. Client work is described without names.
+          Side projects first, then client work, which I describe without client names.
         </p>
       </header>
       <section className="projects-group" aria-labelledby="side-projects-title">
@@ -2089,7 +2089,7 @@ export function Experience({ primary }: { primary: boolean }) {
         <p className="eyebrow">Experience</p>
         <FrameTitle>Where I've worked</FrameTitle>
         <p className="frame-lede">
-          Frontend architecture and team leadership on micro-frontend platforms, and since 2025, AI products.
+          I've led frontend teams on large Vue and React platforms, and since 2025 I've mostly built AI products.
         </p>
       </header>
       <ol className="roles" role="list">
@@ -2159,7 +2159,7 @@ export function About({ primary }: { primary: boolean }) {
     <Frame id="about" primary={primary}>
       <header className="frame-head">
         <p className="eyebrow">About</p>
-        <FrameTitle>Frontend at the core, AI on top</FrameTitle>
+        <FrameTitle>Skills and background</FrameTitle>
       </header>
       <div className="about-intro">
         <picture className="about-portrait">
@@ -2985,7 +2985,7 @@ export const ROUTES: RouteMeta[] = [
     id: "home",
     path: "/",
     title: "Artiom Leontiev · Senior Frontend Engineer, AI-powered apps",
-    description: "Senior frontend engineer in Cluj-Napoca building AI-powered web apps with React and Vue: LLM integrations, RAG, agents and MCP servers.",
+    description: "Senior frontend engineer in Cluj-Napoca, Romania. I build web apps in React and Vue, and since 2025 mostly AI products with LLMs, RAG, agents and MCP servers.",
     image: "/og/home.png",
     imageAlt: "Artiom Leontiev, Senior Frontend Engineer, AI-powered applications",
   },
@@ -2993,7 +2993,7 @@ export const ROUTES: RouteMeta[] = [
     id: "projects",
     path: "/projects",
     title: "Projects · Artiom Leontiev",
-    description: "Side projects including Klipsy and Council, plus client work in AI tooling, micro-frontends and accessible healthcare platforms.",
+    description: "Side projects Klipsy, Council and AskManu, plus client work on AI tools and on compliance and healthcare platforms.",
     image: "/og/projects.png",
     imageAlt: "Projects by Artiom Leontiev",
   },
@@ -3001,7 +3001,7 @@ export const ROUTES: RouteMeta[] = [
     id: "experience",
     path: "/experience",
     title: "Experience · Artiom Leontiev",
-    description: "7+ years at Amdaris and BinarCode: AI products, frontend leadership on micro-frontend platforms, and full-stack Vue and Laravel work.",
+    description: "Senior frontend engineer at Amdaris since 2022, full-stack at BinarCode before that. Frontend lead on two large platforms, and AI products since 2025.",
     image: "/og/experience.png",
     imageAlt: "Experience of Artiom Leontiev",
   },
@@ -3009,7 +3009,7 @@ export const ROUTES: RouteMeta[] = [
     id: "about",
     path: "/about",
     title: "About · Artiom Leontiev",
-    description: "Skills, certifications and background: Vue, React, TypeScript, AI engineering with Claude and OpenAI, accessibility and web performance.",
+    description: "Skills, certifications and education: Vue, React and TypeScript, AI work with Claude, OpenAI and Gemini, accessibility and web performance.",
     image: "/og/about.png",
     imageAlt: "About Artiom Leontiev",
   },
@@ -3017,7 +3017,7 @@ export const ROUTES: RouteMeta[] = [
     id: "contact",
     path: "/contact",
     title: "Contact · Artiom Leontiev",
-    description: "Get in touch with Artiom Leontiev about frontend architecture, React and Vue work, or AI product engineering. Based in Cluj-Napoca, Romania.",
+    description: "Email Artiom Leontiev about a frontend or AI role, or a React or Vue project. Based in Cluj-Napoca, Romania.",
     image: "/og/contact.png",
     imageAlt: "Contact Artiom Leontiev",
   },
@@ -7122,7 +7122,7 @@ git commit -m "feat: add portrait and side-project screenshots"
         home: ["Home", "Senior Frontend Engineer", "AI-powered applications"],
         projects: ["Projects", "Things I've built", "Klipsy, Council and client work"],
         experience: ["Experience", "Where I've worked", "Vue, React and AI products"],
-        about: ["About", "Frontend at the core", "AI on top"],
+        about: ["About", "Skills and background", "Vue, React, TypeScript and AI"],
         contact: ["Contact", "Let's talk", "contact@artiomleo.com"],
       };
       const id = new URLSearchParams(location.search).get("frame") ?? "home";

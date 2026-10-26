@@ -35,8 +35,9 @@ Everything ships in one pull request from the `redesign/canvas` branch.
 - Name: Artiom Leontiev
 - Title: Senior Frontend Engineer · AI-powered applications
 - Headline (the home `h1`): "Artiom Leontiev builds web products, *and the AI behind them.*"
-- Lede: "7+ years of Vue and React, and since 2025 the AI layer behind them: LLM integrations, RAG,
-  agents and MCP servers. Based in Cluj-Napoca, Romania."
+- Lede: "I've built web apps in Vue and React for 7+ years. Since 2025 most of my work has been AI
+  products: LLM features, RAG search, agents, and MCP servers for Claude and ChatGPT. Based in
+  Cluj-Napoca, Romania."
 - Experience length: "7+ years" (the current site says 6+).
 - Hero actions: "See projects" (to `/projects`) and "Get in touch" (to `/contact`).
 
@@ -45,25 +46,23 @@ Everything ships in one pull request from the `redesign/canvas` branch.
 1. **Senior Frontend Engineer · Amdaris · Cluj-Napoca · 2022 to present**, with three nested
    engagements:
    - *AI products and internal AI tooling, 2025 to present.*
-     - Took an AI case-study generator to production. Case studies went from days of manual writing
-       to minutes, and the tool is used by Sales and Marketing. Built the React app and co-built the
-       RAG service (Azure OpenAI).
+     - Took an AI case-study generator to production. Sales and Marketing now get a case study in
+       minutes instead of days. Built the React app and co-built the RAG service (Azure OpenAI).
      - Built and self-hosted an MCP server that gives Claude Code and GitHub Copilot access to the
        company's agent-skill library. Load-tested it to 100 concurrent users at about 70 ms median
        latency.
      - Wrote reusable Claude Code and Copilot agent skills, including a code-review skill that must
        cite evidence for every finding.
-     - Built the pull-request review for an AI-assisted project-delivery platform (changed files,
-       side-by-side diffs, comment threads, approvals) and hardened its flow for accepting
-       AI-drafted changes.
+     - Built the pull-request review screens for an AI-assisted project-delivery platform: changed
+       files, side-by-side diffs, comment threads and approvals.
    - *Frontend lead, sustainability-compliance SaaS, 2025 to 2026.*
      - Designed a React 19 micro-frontend architecture (Module Federation) with a shared design
        system, role-based access and a typed API client.
-     - Brought AI-assisted delivery to the team: Claude Code commands for end-to-end testing and
-       code review, and an agent-driven story and QA workflow (BMAD).
+     - Got the team using AI day to day: Claude Code commands for end-to-end tests and code review,
+       and an agent workflow (BMAD) for writing stories and QA.
    - *Frontend lead, occupational-health platform, 2023 to 2025.*
-     - Designed a Vue 3 and Vite micro-frontend architecture with a configurable dynamic-form
-       engine. The platform passed a WCAG 2.1 AA audit.
+     - Designed the Vue 3 and Vite micro-frontend architecture, including an engine that builds
+       forms from configuration. The platform passed a WCAG 2.1 AA audit.
      - Managed and mentored 4 developers, and ran code reviews, trainings and hiring interviews.
 2. **Full-Stack Engineer · BinarCode · Cluj-Napoca · 2019 to 2022.** The four CV bullets: the
    fertility-clinic platform, the job-board builder, the copywriting tool, and Vue, Laravel and
@@ -378,11 +377,11 @@ Extended files download for this content, with `font-display: swap`. The hero di
 
 | Route | Title | Description |
 | --- | --- | --- |
-| `/` | Artiom Leontiev · Senior Frontend Engineer, AI-powered apps | Senior frontend engineer in Cluj-Napoca building AI-powered web apps with React and Vue: LLM integrations, RAG, agents and MCP servers. |
-| `/projects` | Projects · Artiom Leontiev | Side projects including Klipsy and Council, plus client work in AI tooling, micro-frontends and accessible healthcare platforms. |
-| `/experience` | Experience · Artiom Leontiev | 7+ years at Amdaris and BinarCode: AI products, frontend leadership on micro-frontend platforms, and full-stack Vue and Laravel work. |
-| `/about` | About · Artiom Leontiev | Skills, certifications and background: Vue, React, TypeScript, AI engineering with Claude and OpenAI, accessibility and web performance. |
-| `/contact` | Contact · Artiom Leontiev | Get in touch with Artiom Leontiev about frontend architecture, React and Vue work, or AI product engineering. Based in Cluj-Napoca, Romania. |
+| `/` | Artiom Leontiev · Senior Frontend Engineer, AI-powered apps | Senior frontend engineer in Cluj-Napoca, Romania. I build web apps in React and Vue, and since 2025 mostly AI products with LLMs, RAG, agents and MCP servers. |
+| `/projects` | Projects · Artiom Leontiev | Side projects Klipsy, Council and AskManu, plus client work on AI tools and on compliance and healthcare platforms. |
+| `/experience` | Experience · Artiom Leontiev | Senior frontend engineer at Amdaris since 2022, full-stack at BinarCode before that. Frontend lead on two large platforms, and AI products since 2025. |
+| `/about` | About · Artiom Leontiev | Skills, certifications and education: Vue, React and TypeScript, AI work with Claude, OpenAI and Gemini, accessibility and web performance. |
+| `/contact` | Contact · Artiom Leontiev | Email Artiom Leontiev about a frontend or AI role, or a React or Vue project. Based in Cluj-Napoca, Romania. |
 
 **OG images:** five static 1200×630 PNGs in `public/og/`. Each shows the name, the frame title and the
 amber "Artiom" demo cursor, in the site style.

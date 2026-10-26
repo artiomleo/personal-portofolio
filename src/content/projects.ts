@@ -7,7 +7,7 @@ export const sideProjects: SideProject[] = [
     tagline: "AI social content studio",
     years: "2026 – present",
     role: "Lead full-stack engineer",
-    summary: "Klipsy turns a brand's documents into a steady stream of social content: it writes text posts, designs image posts and makes faceless videos, then publishes them on a schedule.",
+    summary: "Klipsy makes social media content from a brand's documents: text posts, image posts and faceless videos, published on a schedule.",
     points: [
       "Creates posts for each platform in the brand's own voice.",
       "Schedules and publishes to TikTok, YouTube, Instagram, X and more from one calendar.",

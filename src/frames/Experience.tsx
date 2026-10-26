@@ -9,7 +9,7 @@ export function Experience({ primary }: { primary: boolean }) {
         <p className="eyebrow">Experience</p>
         <FrameTitle>Where I've worked</FrameTitle>
         <p className="frame-lede">
-          Frontend architecture and team leadership on micro-frontend platforms, and since 2025, AI products.
+          I've led frontend teams on large Vue and React platforms, and since 2025 I've mostly built AI products.
         </p>
       </header>
       <ol className="roles" role="list">
