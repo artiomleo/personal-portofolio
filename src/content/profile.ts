@@ -6,7 +6,7 @@ export const profile = {
   email: "contact@artiomleo.com",
   github: "https://github.com/artiomleo",
   linkedin: "https://www.linkedin.com/in/artiomleo/",
-  cvUrl: "https://drive.google.com/file/d/1mfCKTsZ6tDHk7Td8VvAKuy1Ct9NsHG6t/view?usp=sharing",
+  cvUrl: "https://drive.google.com/file/d/1c296pwoO0QAl2fmsOOMBiI6i6DjtpRws/view?usp=sharing",
   headline: { lead: "builds web products,", accent: "and the AI behind them." },
   lede: "7+ years of Vue and React, and since 2025 the AI layer behind them: LLM integrations, RAG, agents and MCP servers. Based in Cluj-Napoca, Romania.",
   currently: ["AI products and internal AI tooling at Amdaris", "Building Klipsy on the side"],

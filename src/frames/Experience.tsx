@@ -7,7 +7,7 @@ export function Experience({ primary }: { primary: boolean }) {
     <Frame id="experience" primary={primary}>
       <header className="frame-head">
         <p className="eyebrow">Experience</p>
-        <FrameTitle>7+ years, two companies</FrameTitle>
+        <FrameTitle>Where I've worked</FrameTitle>
         <p className="frame-lede">
           Frontend architecture and team leadership on micro-frontend platforms, and since 2025, AI products.
         </p>

@@ -16,7 +16,7 @@ export const roles: Role[] = [
           "Took an AI case-study generator to production, cutting case studies from days of manual writing to minutes. Used by Sales and Marketing. Built the React app and co-built the RAG service (Azure OpenAI).",
           "Built and self-hosted an MCP server that gives Claude Code and GitHub Copilot access to the company's agent-skill library. Load-tested it to 100 concurrent users at about 70 ms median latency.",
           "Wrote reusable Claude Code and Copilot agent skills for engineering teams, including a code-review skill that has to cite evidence for every finding.",
-          "Contributed frontend features to an AI-assisted software-delivery platform, including human-in-the-loop approval of changes proposed by AI agents (React, TypeScript).",
+          "Built the pull-request review for an AI-assisted project-delivery platform (changed files, side-by-side diffs, comment threads, approvals) and hardened its flow for accepting AI-drafted changes (React, TypeScript).",
         ],
       },
       {
