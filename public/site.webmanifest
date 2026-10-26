@@ -1,0 +1,14 @@
+{
+  "name": "Artiom Leontiev",
+  "short_name": "Artiom",
+  "description": "Senior Frontend Engineer · AI-powered applications",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#F5F5F5",
+  "theme_color": "#6A4DF5",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
