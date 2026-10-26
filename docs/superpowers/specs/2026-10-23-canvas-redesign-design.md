@@ -53,8 +53,9 @@ Everything ships in one pull request from the `redesign/canvas` branch.
        latency.
      - Wrote reusable Claude Code and Copilot agent skills, including a code-review skill that must
        cite evidence for every finding.
-     - Built frontend features for an AI-assisted software-delivery platform, including
-       human-in-the-loop approval of changes that AI agents propose.
+     - Built the pull-request review for an AI-assisted project-delivery platform (changed files,
+       side-by-side diffs, comment threads, approvals) and hardened its flow for accepting
+       AI-drafted changes.
    - *Frontend lead, sustainability-compliance SaaS, 2025 to 2026.*
      - Designed a React 19 micro-frontend architecture (Module Federation) with a shared design
        system, role-based access and a typed API client.
@@ -78,18 +79,19 @@ The 2018–2019 freelance entry is removed, because the CV starts in 2019.
 
 | Project | Years | Role | Links | Stack tags |
 | --- | --- | --- | --- | --- |
-| Klipsy: AI social content studio | 2026 to present | Lead engineer | theklipsy.com | Vue 3, TypeScript, OpenAI, Gemini, MCP, OAuth 2 |
-| Council: AI journaling app for iOS | 2026 | Founder and sole developer | council.artiomleo.com, apps.apple.com/app/id6781214823 | Flutter, Swift, Gemini, Mistral |
-| AskManu: AI coding assistant | 2024 to 2025 | Sole frontend developer, two-person team | askmanu.co | Vue 3, CodeMirror, streaming AI chat |
+| Klipsy: AI social content studio | 2026 to present | Lead full-stack engineer | theklipsy.com | Laravel, Vue 3, TypeScript, Inertia.js, PostgreSQL, Redis, OpenAI, Gemini, MCP, Paddle |
+| Council: AI journaling app for iOS | 2026 | Founder and sole developer | council.artiomleo.com, apps.apple.com/app/id6781214823 | Flutter, Swift, TypeScript, Fastify, Cloud Run, Gemini, Mistral, RevenueCat |
+| AskManu: AI coding assistant | 2024 to 2025 | Lead frontend developer in a small team | askmanu.co | Vue 3, Pinia, Vite, Tailwind CSS, CodeMirror 6, markdown-it |
 
-Descriptions follow the CV bullets.
-- **Klipsy:** the brand-brief pipeline that drives per-platform writer agents, which halved repetitive
-  posts; a 45-tool MCP server secured with OAuth 2 and protections against prompt injection and SSRF;
-  and per-model LLM cost tracking that corrected a 37× overstatement.
-- **Council:** a multi-persona LLM panel, a Gemini-to-Mistral failover gateway, an AI-safety layer
-  that detects crisis content, 8 languages, and a Lighthouse 95+ marketing site.
-- **AskManu:** streaming chat, a CodeMirror editor, GitHub repository connection and an embeddable
-  chat widget.
+Each card describes what the product does; the role line carries the owner's part. Roles and stacks
+were checked against the repositories.
+- **Klipsy:** turns a brand's documents into text posts, image posts and faceless videos; schedules
+  and publishes to TikTok, YouTube, Instagram, X and more; works inside Claude and ChatGPT; tracks
+  post performance.
+- **Council:** a council of AI voices replies to each entry; on-device speech-to-text and read-aloud;
+  no account, journals encrypted on the device; recognizes crisis language; 8 languages.
+- **AskManu:** answered questions about any library at the exact version in use; took code from a
+  built-in editor or a connected GitHub repository; embedded on documentation sites as a widget.
 
 **Client work.** No names, no links, no screenshots. Each card has a drawn wireframe thumbnail that
 does not reproduce the real UI.
@@ -97,15 +99,15 @@ does not reproduce the real UI.
 | Card title | Years | Stack tags | Key point |
 | --- | --- | --- | --- |
 | AI case-study generator | 2025 | React, TypeScript, RAG, Azure OpenAI | Days of writing down to minutes |
-| Agent-skill MCP server | 2026 | Node.js, MCP, Docker | 100 concurrent users at about 70 ms median, plus agent skills for Claude Code and Copilot |
-| AI-assisted software-delivery platform | 2025 to 2026 | React, TypeScript | Human-in-the-loop approval of agent-proposed changes |
-| Sustainability-compliance SaaS | 2025 to 2026 | React 19, Module Federation, design system | Micro-frontends, role-based access, typed API client |
-| PDF digital-signing library | 2026 | .NET, Docker, Azure Key Vault | PAdES B, T, LT and LTA levels under eIDAS, verified with pdfsig; multiple signatures; Key Vault as the certificate source; NuGet and Docker packaging |
+| Agent-skill MCP server | 2026 | Node.js, MCP, Docker, Claude Code | 100 concurrent users at about 70 ms median, plus agent skills for Claude Code and Copilot |
+| AI-assisted project-delivery platform | 2026 | React, TypeScript, Module Federation, TanStack Query | AI drafts requirements, stories and reports that a person accepts or rejects; code, pull-request reviews, pipelines and a VS Code extension |
+| Sustainability-compliance SaaS | 2025 to 2026 | React 19, TypeScript, Module Federation, design system | Independently deployed modules, shared design system, core reporting workflows |
+| PDF digital-signing library | 2026 | .NET, Docker, Azure Key Vault | eIDAS signatures at every PAdES baseline level (B-B to B-LTA); multiple signatures; Key Vault as the certificate source; NuGet and Docker packaging |
 | Occupational-health platform | 2023 to 2025 | Vue 3, Vite, micro-frontends, Pinia | Dynamic-form engine, passed a WCAG 2.1 AA audit, led 4 developers |
 | Fertility-clinic platform | 2019 to 2022 | Vue 3, Laravel, Inertia.js, MySQL, AWS | Kit-processing and shipping automated: 50% less paperwork, 20% better retention |
 | Multi-site job-board builder | 2019 to 2022 | Nuxt, Vue, Tailwind, multi-tenancy | Per-site DNS mapping; SSR and SEO work raised the SEO score by 30% |
 | Copywriting tool | 2019 to 2022 | Content-generation APIs, Stripe | Led a 2-developer team |
-| License-management platform | 2019 to 2022 | Vue.js, Tailwind, WebSockets | A suite of apps that helps enterprises cut licensing costs |
+| License-management platform | 2019 to 2022 | Vue.js, Tailwind, WebSockets | Shows enterprises where they overspend on software licenses; live updates over WebSockets |
 
 Removed from the current site: One More Plate (no live link); the occupational-health, fertility-clinic
 and license-management client links; and the old fertility-clinic project title. Also left out: a receipt-scanning
