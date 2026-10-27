@@ -12,7 +12,7 @@ export function Projects({ primary }: { primary: boolean }) {
         <p className="eyebrow">Projects</p>
         <FrameTitle>Things I've built</FrameTitle>
         <p className="frame-lede">
-          Side projects I own end to end, and client work I led or built. Client work is described without names.
+          Side projects first, then client work, which I describe without client names.
         </p>
       </header>
       <section className="projects-group" aria-labelledby="side-projects-title">

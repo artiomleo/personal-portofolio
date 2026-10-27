@@ -10,7 +10,7 @@ export function About({ primary }: { primary: boolean }) {
     <Frame id="about" primary={primary}>
       <header className="frame-head">
         <p className="eyebrow">About</p>
-        <FrameTitle>Frontend at the core, AI on top</FrameTitle>
+        <FrameTitle>Skills and background</FrameTitle>
       </header>
       <div className="about-intro">
         <picture className="about-portrait">

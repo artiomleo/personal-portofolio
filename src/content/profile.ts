@@ -8,11 +8,11 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/artiomleo/",
   cvUrl: "https://drive.google.com/file/d/1c296pwoO0QAl2fmsOOMBiI6i6DjtpRws/view?usp=sharing",
   headline: { lead: "builds web products,", accent: "and the AI behind them." },
-  lede: "7+ years of Vue and React, and since 2025 the AI layer behind them: LLM integrations, RAG, agents and MCP servers. Based in Cluj-Napoca, Romania.",
-  currently: ["AI products and internal AI tooling at Amdaris", "Building Klipsy on the side"],
+  lede: "I've built web apps in Vue and React for 7+ years. Since 2025 most of my work has been AI products: LLM features, RAG search, agents, and MCP servers for Claude and ChatGPT. Based in Cluj-Napoca, Romania.",
+  currently: ["Building AI products and internal tools at Amdaris", "Building Klipsy, an AI social media app, on the side"],
   bio: [
-    "I'm a senior frontend engineer with 7+ years of building web products in Vue and React. Since 2025 I've focused on AI-powered applications: LLM integrations, RAG, AI agents, and MCP servers for Claude and ChatGPT.",
-    "I lead frontend architecture, including micro-frontends, design systems and accessibility, and I work AI-first every day with Claude Code and agent workflows. Frontend is my core, and I build the AI and API layers a product needs, with working knowledge of backend frameworks.",
+    "I'm a senior frontend engineer in Cluj-Napoca. I started as a full-stack developer at BinarCode, building Vue and Laravel apps for clients, then moved to Amdaris, where I've led frontend teams on large healthcare and compliance platforms.",
+    "Since 2025 I've mostly built AI products: a case-study generator, an MCP server for coding agents, and, in my own time, Klipsy and Council. I use Claude Code every day, and I'm comfortable working in the backend when a feature needs it.",
   ],
   portrait: {
     avif: "/images/portrait.avif",
