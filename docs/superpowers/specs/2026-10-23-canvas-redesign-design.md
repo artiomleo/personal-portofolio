@@ -51,10 +51,13 @@ Everything ships in one pull request from the `redesign/canvas` branch.
      - Built and self-hosted an MCP server that gives Claude Code and GitHub Copilot access to the
        company's agent-skill library. Load-tested it to 100 concurrent users at about 70 ms median
        latency.
-     - Wrote reusable Claude Code and Copilot agent skills, including a code-review skill that must
-       cite evidence for every finding.
-     - Built the pull-request review screens for an AI-assisted project-delivery platform: changed
-       files, side-by-side diffs, comment threads and approvals.
+     - Contributed to a shared library of agent skills that add common features to a project in one
+       step, such as Microsoft Entra ID sign-in, role-based permissions, audit trails and PDF digital
+       signatures.
+     - Worked on an AI-assisted project-delivery platform where AI assistants act as product manager,
+       architect and scrum master, drafting requirements, stories and reports for a person to accept
+       or reject. It also hosts the team's code, pull-request reviews and build pipelines, with a VS
+       Code extension.
    - *Frontend lead, sustainability-compliance SaaS, 2025 to 2026.*
      - Designed a React 19 micro-frontend architecture (Module Federation) with a shared design
        system, role-based access and a typed API client.
@@ -98,8 +101,8 @@ does not reproduce the real UI.
 | Card title | Years | Stack tags | Key point |
 | --- | --- | --- | --- |
 | AI case-study generator | 2025 | React, TypeScript, RAG, Azure OpenAI | Days of writing down to minutes |
-| Agent-skill MCP server | 2026 | Node.js, MCP, Docker, Claude Code | 100 concurrent users at about 70 ms median, plus agent skills for Claude Code and Copilot |
-| AI-assisted project-delivery platform | 2026 | React, TypeScript, Module Federation, TanStack Query | AI drafts requirements, stories and reports that a person accepts or rejects; code, pull-request reviews, pipelines and a VS Code extension |
+| Agent-skill MCP server | 2026 | Node.js, MCP, Docker, Claude Code | 100 concurrent users at about 70 ms median; skills such as Entra ID sign-in, role-based permissions, audit trails and PDF signatures |
+| AI-assisted project-delivery platform | 2026 | React, TypeScript, Module Federation, TanStack Query | AI assistants as product manager, architect and scrum master draft requirements, stories and reports that a person accepts or rejects; code, pull-request reviews, pipelines and a VS Code extension |
 | Sustainability-compliance SaaS | 2025 to 2026 | React 19, TypeScript, Module Federation, design system | Independently deployed modules, shared design system, core reporting workflows |
 | PDF digital-signing library | 2026 | .NET, Docker, Azure Key Vault | eIDAS signatures at every PAdES baseline level (B-B to B-LTA); multiple signatures; Key Vault as the certificate source; NuGet and Docker packaging |
 | Occupational-health platform | 2023 to 2025 | Vue 3, Vite, micro-frontends, Pinia | Dynamic-form engine, passed a WCAG 2.1 AA audit, led 4 developers |

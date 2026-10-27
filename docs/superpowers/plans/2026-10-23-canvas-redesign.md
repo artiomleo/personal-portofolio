@@ -458,8 +458,8 @@ export const roles: Role[] = [
         points: [
           "Took an AI case-study generator to production. Sales and Marketing now get a case study in minutes instead of days. Built the React app and co-built the RAG service (Azure OpenAI).",
           "Built and self-hosted an MCP server that gives Claude Code and GitHub Copilot access to the company's agent-skill library. Load-tested it to 100 concurrent users at about 70 ms median latency.",
-          "Wrote reusable Claude Code and Copilot agent skills for engineering teams, including a code-review skill that has to cite evidence for every finding.",
-          "Built the pull-request review screens for an AI-assisted project-delivery platform: changed files, side-by-side diffs, comment threads and approvals (React, TypeScript).",
+          "Contributed to a shared library of agent skills that add common features to a project in one step, such as Microsoft Entra ID sign-in, role-based permissions, audit trails and PDF digital signatures.",
+          "Worked on an AI-assisted project-delivery platform where AI assistants act as product manager, architect and scrum master, drafting requirements, stories and reports for a person to accept or reject. It also hosts the team's code, pull-request reviews and build pipelines, with a VS Code extension (React, TypeScript).",
         ],
       },
       {
@@ -624,7 +624,7 @@ export const clientProjects: ClientProject[] = [
     slug: "ai-delivery-platform",
     title: "AI-assisted project-delivery platform",
     years: "2026",
-    summary: "A platform where software teams plan and ship their projects. AI assistants draft requirements, stories and reports, and a person accepts or rejects every change. Code, pull-request reviews and build pipelines live in the same place, with a VS Code extension for working from the editor.",
+    summary: "A platform where software teams plan and ship their projects. AI assistants acting as product manager, architect and scrum master draft requirements, stories and reports, and a person accepts or rejects every change. Code, pull-request reviews and build pipelines live in the same place, with a VS Code extension for working from the editor.",
     stack: ["React", "TypeScript", "Module Federation", "TanStack Query"],
     wireframe: "editor",
   },
@@ -632,7 +632,7 @@ export const clientProjects: ClientProject[] = [
     slug: "agent-skill-mcp",
     title: "Agent-skill MCP server",
     years: "2026",
-    summary: "A shared library of agent skills that Claude Code and GitHub Copilot load on demand, served from a self-hosted MCP server that handles 100 concurrent users at about 70 ms median latency. I built the server and wrote skills such as a code review that must cite evidence for each finding.",
+    summary: "A shared library of agent skills that Claude Code and GitHub Copilot load on demand, served from a self-hosted MCP server that handles 100 concurrent users at about 70 ms median latency. The skills add common features to a project in one step, such as Microsoft Entra ID sign-in, role-based permissions, audit trails and PDF digital signatures.",
     stack: ["Node.js", "MCP", "Docker", "Claude Code"],
     wireframe: "list",
   },
