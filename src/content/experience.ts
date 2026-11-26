@@ -2,11 +2,11 @@ import type { Role } from "./types";
 
 export const roles: Role[] = [
   {
-    id: "amdaris",
+    id: "insight",
     title: "Senior Frontend Engineer",
-    company: "Amdaris",
+    company: "Insight",
     location: "Cluj-Napoca, Romania",
-    years: "2022 – present",
+    years: "2026 – present",
     engagements: [
       {
         id: "ai-tooling",
@@ -19,6 +19,16 @@ export const roles: Role[] = [
           "Worked on an AI-assisted project-delivery platform where AI assistants act as product manager, architect and scrum master, drafting requirements, stories and reports for a person to accept or reject. It also hosts the team's code, pull-request reviews and build pipelines, with a VS Code extension (React, TypeScript).",
         ],
       },
+    ],
+    points: [],
+  },
+  {
+    id: "amdaris",
+    title: "Senior Frontend Engineer",
+    company: "Amdaris",
+    location: "Cluj-Napoca, Romania",
+    years: "2022 – 2026",
+    engagements: [
       {
         id: "compliance",
         title: "Frontend lead, sustainability-compliance SaaS",
