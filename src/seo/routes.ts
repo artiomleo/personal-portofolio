@@ -33,7 +33,7 @@ export const ROUTES: RouteMeta[] = [
     id: "experience",
     path: "/experience",
     title: "Experience · Artiom Leontiev",
-    description: "Senior frontend engineer at Amdaris since 2022, full-stack at BinarCode before that. Frontend lead on two large platforms, and AI products since 2025.",
+    description: "Senior frontend engineer at Insight since 2026, at Amdaris from 2022 and full-stack at BinarCode before that. Frontend lead on two large platforms, AI products since 2025.",
     image: "/og/experience.png",
     imageAlt: "Experience of Artiom Leontiev",
   },
